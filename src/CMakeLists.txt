@@ -1,0 +1,226 @@
+INCLUDE_DIRECTORIES(
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/third_party
+    ${PROJECT_SOURCE_DIR}/src/third_party/confuse/src
+    ${PROJECT_SOURCE_DIR}/src/third_party/rapidjson/include
+    ${PROJECT_SOURCE_DIR}/src/third_party/tclap/include)
+AUX_SOURCE_DIRECTORY(logkafka DIR_SRCS)
+AUX_SOURCE_DIRECTORY(base DIR_SRCS)
+ADD_SUBDIRECTORY(third_party/confuse)
+ADD_EXECUTABLE(logkafka ${DIR_SRCS})
+TARGET_LINK_LIBRARIES(logkafka confuse)
+
+SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb -pg")
+SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
+IF( NOT CMAKE_BUILD_TYPE )
+    SET( CMAKE_BUILD_TYPE Release ... FORCE )
+ENDIF()
+
+################################
+# Build logkafka_lib for unit test
+################################
+FILE(GLOB ALL_SRCS */*)
+LIST(REMOVE_ITEM ALL_SRCS logkafka/main.cc) # remove "main.cc" from "*.cc" file list
+ADD_LIBRARY(logkafka_lib ${ALL_SRCS})
+
+SET(CMAKE_SOURCE_DIR .)
+
+##############
+# Modules
+##############
+SET(CMAKE_MODULE_PATH ${CMAKE_ROOT}/Modules ${CMAKE_SOURCE_DIR}/cmake/modules
+    ${PROJECT_SOURCE_DIR}/modules) 
+
+#AUX_SOURCE_DIRECTORY(. DIR_SRCS)
+#ADD_EXECUTABLE(logkafka ${DIR_SRCS})
+
+# rdkafka
+IF (NOT INSTALL_LIBRDKAFKA)
+
+    FIND_PACKAGE( librdkafka REQUIRED)
+    MARK_AS_ADVANCED(
+    LIBRDKAFKA_INCLUDE_DIR
+    LIBRDKAFKA_LIBRARIES
+    )
+    IF (LIBRDKAFKA_INCLUDE_DIR AND LIBRDKAFKA_LIBRARIES)
+    MESSAGE(STATUS "Found librdkafka libraries")
+       INCLUDE_DIRECTORIES(${LIBRDKAFKA_INCLUDE_DIR})
+        MESSAGE( ${LIBRDKAFKA_LIBRARIES} )
+        TARGET_LINK_LIBRARIES(logkafka ${LIBRDKAFKA_LIBRARIES} )
+    ELSE (LIBRDKAFKA_INCLUDE_DIR AND LIBRDKAFKA_LIBRARIES)
+        MESSAGE(FATAL_ERROR "Failed to find librdkafka libraries")
+    ENDIF (LIBRDKAFKA_INCLUDE_DIR AND LIBRDKAFKA_LIBRARIES)
+
+ENDIF (NOT INSTALL_LIBRDKAFKA)
+
+# zookeeper
+IF (NOT INSTALL_LIBZOOKEEPER_MT)
+
+    FIND_PACKAGE( libzookeeper_mt REQUIRED)
+    MARK_AS_ADVANCED(
+    LIBZOOKEEPER_MT_INCLUDE_DIR
+    LIBZOOKEEPER_MT_LIBRARIES
+    )
+    IF (LIBZOOKEEPER_MT_INCLUDE_DIR AND LIBZOOKEEPER_MT_LIBRARIES)
+    MESSAGE(STATUS "Found libzookeeper_mt libraries")
+       INCLUDE_DIRECTORIES(${LIBZOOKEEPER_MT_INCLUDE_DIR})
+        MESSAGE( ${LIBZOOKEEPER_MT_LIBRARIES} )
+        TARGET_LINK_LIBRARIES(logkafka ${LIBZOOKEEPER_MT_LIBRARIES} )
+    ELSE (LIBZOOKEEPER_MT_INCLUDE_DIR AND LIBZOOKEEPER_MT_LIBRARIES)
+        MESSAGE(FATAL_ERROR "Failed to find libzookeeper_mt libraries")
+    ENDIF (LIBZOOKEEPER_MT_INCLUDE_DIR AND LIBZOOKEEPER_MT_LIBRARIES)
+
+ENDIF (NOT INSTALL_LIBZOOKEEPER_MT)
+
+# uv
+IF (NOT INSTALL_LIBUV)
+
+    FIND_PACKAGE( libuv REQUIRED)
+    MARK_AS_ADVANCED(
+    LIBUV_INCLUDE_DIR
+    LIBUV_LIBRARIES
+    )
+    IF (LIBUV_INCLUDE_DIR AND LIBUV_LIBRARIES)
+    MESSAGE(STATUS "Found libuv libraries")
+       INCLUDE_DIRECTORIES(${LIBUV_INCLUDE_DIR})
+        MESSAGE( ${LIBUV_LIBRARIES} )
+        MESSAGE( ${LIBUV_INCLUDE_DIR} )
+        TARGET_LINK_LIBRARIES(logkafka ${LIBUV_LIBRARIES} )
+    ELSE (LIBUV_INCLUDE_DIR AND LIBUV_LIBRARIES)
+        MESSAGE(FATAL_ERROR "Failed to find libuv libraries")
+    ENDIF (LIBUV_INCLUDE_DIR AND LIBUV_LIBRARIES)
+
+ENDIF (NOT INSTALL_LIBUV)
+
+# pthread
+FIND_PACKAGE( libpthread REQUIRED)
+MARK_AS_ADVANCED(
+LIBPTHREAD_INCLUDE_DIR
+LIBPTHREAD_LIBRARIES
+)
+IF (LIBPTHREAD_INCLUDE_DIR AND LIBPTHREAD_LIBRARIES)
+MESSAGE(STATUS "Found libpthread libraries")
+   INCLUDE_DIRECTORIES(${LIBPTHREAD_INCLUDE_DIR})
+    MESSAGE( ${LIBPTHREAD_LIBRARIES} )
+    TARGET_LINK_LIBRARIES(logkafka ${LIBPTHREAD_LIBRARIES} )
+ELSE (LIBPTHREAD_INCLUDE_DIR AND LIBPTHREAD_LIBRARIES)
+    MESSAGE(FATAL_ERROR "Failed to find libpthread libraries")
+ENDIF (LIBPTHREAD_INCLUDE_DIR AND LIBPTHREAD_LIBRARIES)
+
+# rt ( libkafka )
+FIND_PACKAGE( librt REQUIRED)
+MARK_AS_ADVANCED(
+LIBRT_INCLUDE_DIR
+LIBRT_LIBRARIES
+)
+IF (LIBRT_INCLUDE_DIR AND LIBRT_LIBRARIES)
+MESSAGE(STATUS "Found librt libraries")
+   INCLUDE_DIRECTORIES(${LIBRT_INCLUDE_DIR})
+    MESSAGE( ${LIBRT_LIBRARIES} )
+    TARGET_LINK_LIBRARIES(logkafka ${LIBRT_LIBRARIES} )
+ELSE (LIBRT_INCLUDE_DIR AND LIBRT_LIBRARIES)
+    MESSAGE(FATAL_ERROR "Failed to find librt libraries")
+ENDIF (LIBRT_INCLUDE_DIR AND LIBRT_LIBRARIES)
+
+# z ( libkafka )
+FIND_PACKAGE( libz REQUIRED)
+MARK_AS_ADVANCED(
+LIBZ_INCLUDE_DIR
+LIBZ_LIBRARIES
+)
+IF (LIBZ_INCLUDE_DIR AND LIBZ_LIBRARIES)
+MESSAGE(STATUS "Found libz libraries")
+   INCLUDE_DIRECTORIES(${LIBZ_INCLUDE_DIR})
+    MESSAGE( ${LIBZ_LIBRARIES} )
+    TARGET_LINK_LIBRARIES(logkafka ${LIBZ_LIBRARIES} )
+ELSE (LIBZ_INCLUDE_DIR AND LIBZ_LIBRARIES)
+    MESSAGE(${LIBZ_LIBRARIES})
+    MESSAGE(${LIBZ_INCLUDE_DIR})
+    MESSAGE(FATAL_ERROR "Failed to find libz libraries")
+ENDIF (LIBZ_INCLUDE_DIR AND LIBZ_LIBRARIES)
+
+################################
+# External Projects
+################################
+include(ExternalProject)
+
+# librdkafka 
+IF (INSTALL_LIBRDKAFKA)
+
+    MESSAGE(STATUS "installing librdkafka ...")
+    CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
+
+    ExternalProject_Add(project_librdkafka
+        GIT_REPOSITORY https://github.com/edenhill/librdkafka.git
+        GIT_TAG 0.8.6
+        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/librdkafka
+        CONFIGURE_COMMAND cd <SOURCE_DIR> && ./configure --prefix=<INSTALL_DIR>
+        BUILD_COMMAND cd <SOURCE_DIR> && make
+        INSTALL_COMMAND cd <SOURCE_DIR> && make install
+    )
+
+    ExternalProject_Get_Property(project_librdkafka install_dir)
+
+    #add_library(librdkafka SHARED IMPORTED)
+    #set_property(TARGET librdkafka PROPERTY IMPORTED_LOCATION ${install_dir}/lib/librdkafka.so)
+    add_library(librdkafka STATIC IMPORTED)
+    set_property(TARGET librdkafka PROPERTY IMPORTED_LOCATION ${install_dir}/lib/librdkafka.a)
+    add_dependencies(librdkafka project_librdkafka)
+
+    TARGET_LINK_LIBRARIES(logkafka librdkafka)
+    INCLUDE_DIRECTORIES(${install_dir}/include)
+
+ENDIF (INSTALL_LIBRDKAFKA)
+
+# libzookeeper_mt 
+IF (INSTALL_LIBZOOKEEPER_MT)
+
+    MESSAGE(STATUS "installing libzookeeper_mt ...")
+    CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
+
+    ExternalProject_Add(project_libzookeeper_mt
+        URL http://archive.apache.org/dist/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
+        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libzookeeper_mt
+        CONFIGURE_COMMAND cd <SOURCE_DIR>/src/c && ./configure --prefix=<INSTALL_DIR>
+        BUILD_COMMAND cd <SOURCE_DIR>/src/c && make -j4
+        INSTALL_COMMAND cd <SOURCE_DIR>/src/c && make install
+    )
+
+    ExternalProject_Get_Property(project_libzookeeper_mt install_dir)
+
+    add_library(libzookeeper_mt STATIC IMPORTED)
+    set_property(TARGET libzookeeper_mt PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libzookeeper_mt.a)
+    add_dependencies(libzookeeper_mt project_libzookeeper_mt)
+
+    TARGET_LINK_LIBRARIES(logkafka libzookeeper_mt)
+    INCLUDE_DIRECTORIES(${install_dir}/include)
+
+ENDIF (INSTALL_LIBZOOKEEPER_MT)
+
+# libuv 
+IF (INSTALL_LIBUV)
+
+    MESSAGE(STATUS "installing libuv ...")
+    CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
+
+    ExternalProject_Add(project_libuv
+        GIT_REPOSITORY https://github.com/libuv/libuv.git
+        GIT_TAG v1.6.0
+        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libuv
+        CONFIGURE_COMMAND cd <SOURCE_DIR> && sh autogen.sh && ./configure --prefix=<INSTALL_DIR>
+        BUILD_COMMAND cd <SOURCE_DIR> && make
+        INSTALL_COMMAND cd <SOURCE_DIR> && make install
+    )
+
+    ExternalProject_Get_Property(project_libuv install_dir)
+
+    #add_library(libuv SHARED IMPORTED)
+    #set_property(TARGET libuv PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libuv.so)
+    add_library(libuv STATIC IMPORTED)
+    set_property(TARGET libuv PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libuv.a)
+    add_dependencies(libuv project_libuv)
+
+    TARGET_LINK_LIBRARIES(logkafka libuv)
+    INCLUDE_DIRECTORIES(${install_dir}/include)
+
+ENDIF (INSTALL_LIBUV)

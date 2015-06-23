@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) 2015 Qihoo 360
+Copyright (c) 2015 Qihoo 360 Technology Co., Ltd. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,3 +20,22 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+====
+
+This license applies to all parts of logkafka that are not externally
+maintained libraries.
+
+ - confuse
+   The ISC License (ISC)
+
+ - easylogging
+   Copyright (c) 2015 muflihun.com
+   The MIT License (MIT)
+
+ - rapidjson 
+   Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.
+   The MIT License (MIT)
+
+ - tclap
+   Copyright (c) 2003 Michael E. Smoot
+   The MIT License (MIT)

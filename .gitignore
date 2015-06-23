@@ -1,0 +1,65 @@
+###########################################
+# DIRS
+_build
+_install
+tests
+cpp/tests/unittest/data
+CMakeFiles
+deploy
+
+###########################################
+# SPECIAL FILES 
+*.rpm*
+*.tar*
+*.tgz*
+*.swp*
+*.svn*
+*tags*
+*.bak
+Makefile
+CMakeCache.txt
+*.gdbm
+*.cmake
+gmon.out
+*.log
+
+###########################################
+# JAVA COMMON IGNORE
+
+*.class
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+###########################################
+# C++ COMMON IGNORE
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Compiled Dynamic libraries
+*.so*
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
