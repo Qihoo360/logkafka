@@ -2,9 +2,9 @@
 
 logkafka sends log file contents to kafka 0.8 line by line. It treats one line of file as one kafka message.
 
-logkafka will watch the node in zookeeper for configs changing, record file position in local position file, and push position info to zookeeper periodically.
-
 See [FAQ](docs/FAQ.md) if you wanna deploy it in production environment.
+
+![logkafka](docs/imgs/logkafka.png?raw=true "logkafka")
 
 ## Supports
 
@@ -13,6 +13,21 @@ See [FAQ](docs/FAQ.md) if you wanna deploy it in production environment.
 * log file rotating
 * batching messages
 * compression (none, gzip, snappy)
+
+## Differences with other log aggregation and monitoring tools 
+The main differences with **flume**, **fluentd**, **logstash** are
+
+* Management of log collecting configs and state: 
+
+  flume, fluentd, logstash keep log file configs and state locally: start local server for management of log file configs and state.
+  
+  logkafka keep log file configs and state in zookeeper: watch the node in zookeeper for configs changing, record file position in local position file, and push position info to zookeeper periodically.
+
+* Order of log collecting
+
+  flume, fluentd, logstash all have INPUT type 'tail', they collecting all files simultaneously, without considering chronological order of log files.
+  
+  logkafka will collect files chronologically.
 
 ## Requirements
 
@@ -60,13 +75,15 @@ Note: If you already have kafka and zookeeper installed, you can start from step
 
    * local conf
    
-   _insatll/conf/logkafka.conf
+   _install/conf/logkafka.conf
    
    ```
-    zk_cluster     = 127.0.0.1:2181             # zookeeper urls
-    pos_path      = ../data/pos.myClusterName # position saving file, relative to the dir of this file
+    zk_urls     = 127.0.0.1:2181             # zookeeper urls
+    pos_path       = ../data/pos.myClusterName  # position saving file, relative to the dir of this file
     line_max_bytes = 1048576                    # 1M
-    state_update_interval = 10                  # 10s, interval of updating processing state in zookeeper
+    stat_silent_max_ms = 10000                  # 10s
+    zookeeper_upload_interval = 10000           # 10s, interval of uploading processing state to zookeeper
+    refresh_interval = 30000                    # 30s, refresh log file list every 30s
     ...
    ```
    
