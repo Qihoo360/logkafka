@@ -101,9 +101,9 @@ class TailWatcher
             writer.String("realpath");
             writer.String(realpath.c_str(), (rapidjson::SizeType)realpath.length()); // Supplying length of string is faster.
             writer.String("filepos");
-            writer.Int64(filepos);
+            writer.String(int2Str(filepos).c_str());
             writer.String("filesize");
-            writer.Int64(filesize);
+            writer.String(int2Str(filesize).c_str());
 
             writer.EndObject();
         };/*}}}*/

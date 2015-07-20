@@ -46,6 +46,7 @@ extern void rtrim(char *str);
 extern void ltrim(char *str);
 extern void trim(char *str);
 extern string int2Str(long long val);
+extern bool str2Bool(string str);
 extern const char* realDir(const char *filepath, char *realdir);
 extern bool isAbsPath(const char* filepath);
 

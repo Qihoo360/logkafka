@@ -48,7 +48,7 @@ function main()
                                     '-1 : random'.
                                     'n(>=0): partition n'
                                    );
-    $partitionOpt -> setDefaultValue(-1);
+    $partitionOpt -> setDefaultValue('-1');
     $partitionOpt -> setValidation(function($value) {
         return is_numeric($value);
     });
@@ -62,7 +62,7 @@ function main()
 
     $requiredAcksOpt = new Option(null, 'required_acks', Getopt::REQUIRED_ARGUMENT);
     $requiredAcksOpt -> setDescription('Required ack number');
-    $requiredAcksOpt -> setDefaultValue(1);
+    $requiredAcksOpt -> setDefaultValue('1');
     $requiredAcksOpt -> setValidation(function($value) {
         return is_numeric($value);
     });
@@ -78,9 +78,9 @@ function main()
 
     $batchsizeOpt = new Option(null, 'batchsize', Getopt::REQUIRED_ARGUMENT);
     $batchsizeOpt -> setDescription('The batch size of messages to be sent');
-    $batchsizeOpt -> setDefaultValue(1000);
+    $batchsizeOpt -> setDefaultValue('1000');
     $batchsizeOpt -> setValidation(function($value) {
-        return (is_numeric($value) && $value > 0);
+        return (is_numeric($value) && (int)$value > 0);
     });
 
     $follow_lastOpt = new Option(null, 'follow_last', Getopt::REQUIRED_ARGUMENT);
@@ -97,9 +97,9 @@ function main()
     $message_timeout_msOpt -> setDescription('Local message timeout. This value is only enforced locally 
                           and limits the time a produced message waits for successful delivery. 
                           A time of 0 is infinite.');
-    $message_timeout_msOpt -> setDefaultValue(0);
+    $message_timeout_msOpt -> setDefaultValue('0');
     $message_timeout_msOpt -> setValidation(function($value) {
-        return (is_numeric($value) && $value >= 0);
+        return (is_numeric($value) && (int)$value >= 0);
     });
 
     $validOpt = new Option(null, 'valid', Getopt::REQUIRED_ARGUMENT);
@@ -235,14 +235,6 @@ function getConfig($parser, $items)
         if ($parser[$item_name] !== NULL)
         {
             $configs[$item_name] = $parser[$item_name];
-            if ($items[$item_name]['type'] == 'integer')
-            {
-                $configs[$item_name] = (int)$configs[$item_name];
-            }
-            if ($items[$item_name]['type'] == 'bool')
-            {
-                $configs[$item_name] = $configs[$item_name] == "true" ? true: false;
-            }
         }
         else
         {
@@ -331,14 +323,14 @@ class AdminUtils
         'hostname'   => array('type'=>'string', 'default'=>''),
         'log_path' => array('type'=>'string', 'default'=>''),
         'topic'      => array('type'=>'string', 'default'=>''),
-        'partition'  => array('type'=>'integer', 'default'=>-1),
+        'partition'  => array('type'=>'integer', 'default'=>'-1'),
         'key'        => array('type'=>'string','default'=>''),
-        'required_acks' => array('type'=>'integer', 'default'=>1),
+        'required_acks' => array('type'=>'integer', 'default'=>'1'),
         'compression_codec' => array('type'=>'string', 'default'=>'none'),
-        'batchsize'   => array('type'=>'integer', 'default'=>1000),
-        'message_timeout_ms'   => array('type'=>'integer', 'default'=>0),
-        'follow_last' => array('type'=>'bool', 'default'=>true),
-        'valid'       => array('type'=>'bool', 'default'=>true),
+        'batchsize'   => array('type'=>'integer', 'default'=>'1000'),
+        'message_timeout_ms'   => array('type'=>'integer', 'default'=>'0'),
+        'follow_last' => array('type'=>'bool', 'default'=>'true'),
+        'valid'       => array('type'=>'bool', 'default'=>'true'),
         );
 
     static $COMPRESSION_CODECS = array(
@@ -350,6 +342,10 @@ class AdminUtils
     static function createConfig($zkClient, $configs)
     {/*{{{*/
         $hostname = $configs['hostname'];
+        unset($configs['hostname']);
+        $log_path = $configs['log_path'];
+        unset($configs['log_path']);
+
         $path = self::LOG_COLLECT_CONFIG_PATH.'/'.$hostname;
         self::createPath($zkClient, $path);
         $data = $zkClient->get($path);
@@ -359,9 +355,9 @@ class AdminUtils
         }
         $info = json_decode($data);
         if (is_array($info))
-            $info[$configs['log_path']] = $configs;
+            $info[$log_path] = $configs;
         else
-            $info->$configs['log_path'] = $configs;
+            $info->$log_path = $configs;
 
         if (!$zkClient->set($path, json_encode($info)))
         {

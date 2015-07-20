@@ -48,6 +48,14 @@ struct LogConf{
 
     bool read_from_head;
 
+    LogConf()
+    {/*{{{*/
+        log_path = "";
+        follow_last = false;
+        batchsize = 200;
+        read_from_head = true;
+    }/*}}}*/
+
     bool operator==(const LogConf& hs) const
     {/*{{{*/
         return (log_path == hs.log_path) &&
@@ -61,14 +69,14 @@ struct LogConf{
     };/*}}}*/
 
     friend ostream& operator << (ostream& os, const LogConf& lc)
-    {
+    {/*{{{*/
         os << "log path: " << lc.log_path
            << "follow last" << lc.follow_last
            << "batchsize" << lc.batchsize
            << "read from head" << lc.read_from_head;
 
         return os;
-    }
+    }/*}}}*/
 
     bool isLegal()
     {/*{{{*/
@@ -95,7 +103,7 @@ struct KafkaTopicConf {
     int message_timeout_ms;
     
     KafkaTopicConf()
-    {
+    {/*{{{*/
         brokers = "";
         topic = "";
         compression_codec = "none";
@@ -103,7 +111,7 @@ struct KafkaTopicConf {
         key = "";
         partition = -1;
         message_timeout_ms = 0;
-    }
+    }/*}}}*/
 
     bool operator==(const KafkaTopicConf& hs) const
     {/*{{{*/
@@ -122,14 +130,14 @@ struct KafkaTopicConf {
     };/*}}}*/
 
     friend ostream& operator << (ostream& os, const KafkaTopicConf& ktc)
-    {
+    {/*{{{*/
         return os;
-    }
+    }/*}}}*/
 
     bool isLegal()
-    {
+    {/*{{{*/
         return true;
-    }
+    }/*}}}*/
 };
 
 struct TaskConf
@@ -148,18 +156,18 @@ struct TaskConf
     };/*}}}*/
 
     friend ostream& operator << (ostream& os, const TaskConf& tc)
-    {
+    {/*{{{*/
         os << "valid: " << tc.valid
            << "log conf" << tc.log_conf 
            << "kafka topic conf" << tc.kafka_topic_conf;
 
         return os;
-    }
+    }/*}}}*/
 
     bool isLegal()
-    {
+    {/*{{{*/
         return log_conf.isLegal() && kafka_topic_conf.isLegal();
-    }
+    }/*}}}*/
 };
 
 struct TaskStat

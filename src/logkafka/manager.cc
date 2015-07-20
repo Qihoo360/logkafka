@@ -136,33 +136,71 @@ bool Manager::refreshTaskConfs()
         TaskConf item;
 
         const Value &log_item = itr->value;
+        /* topic must be acquired from json */
         try {
-            Json::getValue(log_item, "valid", item.valid);
-            Json::getValue(log_item, "log_path", item.log_conf.log_path);
-
-            Json::getValue(log_item, "follow_last", item.log_conf.follow_last);
-            Json::getValue(log_item, "batchsize", item.log_conf.batchsize);
-
-            item.log_conf.read_from_head = true;
-
-            Json::getValue(log_item, "topic", item.kafka_topic_conf.topic);
-            Json::getValue(log_item, "key", item.kafka_topic_conf.key);
-            Json::getValue(log_item, "partition", item.kafka_topic_conf.partition);
-            Json::getValue(log_item, "compression_codec", 
-                    item.kafka_topic_conf.compression_codec);
-
-            Json::getValue(log_item, "required_acks", 
-                    item.kafka_topic_conf.required_acks);
-
-            Json::getValue(log_item, "message_timeout_ms", 
-                    item.kafka_topic_conf.message_timeout_ms);
+            string topic;
+            Json::getValue(log_item, "topic", topic);
+            item.kafka_topic_conf.topic = topic;
         } catch(const JsonErr &err) {
             LERROR << "Json error: " << err
                    << "Json string: " << Json::serialize(log_item);
             continue;
-        } catch(...) {
+        } catch(...) { 
+            LERROR << "Unknown exception";
             continue;
         }
+
+        try {
+            string valid;
+            Json::getValue(log_item, "valid", valid);
+            item.valid = str2Bool(valid);
+        } catch(...) { /* default value */ }
+
+        item.log_conf.log_path = itr->name.GetString();
+
+        try {
+            string follow_last;
+            Json::getValue(log_item, "follow_last", follow_last);
+            item.log_conf.follow_last = str2Bool(follow_last);
+        } catch(...) { /* default value */ }
+
+        try {
+            string batchsize;
+            Json::getValue(log_item, "batchsize", batchsize);
+            item.log_conf.batchsize = atoi(batchsize.c_str());
+        } catch(...) { /* default value */ }
+
+        item.log_conf.read_from_head = true;
+
+        try {
+            string key;
+            Json::getValue(log_item, "key", key);
+            item.kafka_topic_conf.key = key;
+        } catch(...) { /* default value */ }
+
+        try {
+            string partition;
+            Json::getValue(log_item, "partition", partition);
+            item.kafka_topic_conf.partition = atoi(partition.c_str());
+        } catch(...) { /* default value */ }
+
+        try {
+            string compression_codec;
+            Json::getValue(log_item, "compression_codec", compression_codec);
+            item.kafka_topic_conf.compression_codec = compression_codec;
+        } catch(...) { /* default value */ }
+
+        try {
+            string required_acks;
+            Json::getValue(log_item, "required_acks", required_acks);
+            item.kafka_topic_conf.required_acks = atoi(required_acks.c_str());
+        } catch(...) { /* default value */ }
+
+        try {
+            string message_timeout_ms;
+            Json::getValue(log_item, "message_timeout_ms", message_timeout_ms);
+            item.kafka_topic_conf.message_timeout_ms = atoi(message_timeout_ms.c_str());
+        } catch(...) { /* default value */ }
 
         string path_pattern = (itr->name).GetString();
         if (item.isLegal()) {
