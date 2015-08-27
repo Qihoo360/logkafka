@@ -95,6 +95,31 @@ Note: If you already have kafka and zookeeper installed, you can start from step
    
 3. Configs Management
 
+  Use UI or command line tools.
+
+  3.1 UI (with kafka-manger)
+
+  We add logkafka as one kafka-manager extension. You need to [install and start kafka-manager](https://github.com/yahoo/kafka-manager/), add cluster with logkafka enabled, then you can manage logkafka with the 'Logkafka' menu.
+  
+  * How to add cluster with logkafka enabled
+
+  ![logkafka](docs/imgs/add_cluster.png?raw=true "add cluster")
+  
+  * How to create new config
+
+  ![logkafka](docs/imgs/create_logkafka.png?raw=true "create logkafka")
+
+  * How to delete configs
+
+  ![logkafka](docs/imgs/delete_logkafka.png?raw=true "delete logkafka")
+
+  * How to list configs and monitor sending progress
+  
+  ![logkafka](docs/imgs/list_logkafka.png?raw=true "list logkafka")
+
+
+  3.2 Command line tools
+  
   We use php script (tools/log_config.php) to create/delete/list collecting configurations in zookeeper nodes.
   
   If you do not know how to install php zookeeper module, check [this](docs/install-php-zookeeper-extension.md).
