@@ -43,7 +43,7 @@ The main differences with **flume**, **fluentd**, **logstash** are
 
 Two methods, choose accordingly.
 
-1. Install [librdkafka](docs/install-librdkafka.md), [libzookeeper_mt](docs/install-libzookeeper_mt.md), [libuv](docs/install-libuv.md) manually, then
+1. Install [librdkafka(>0.8.6)](docs/install-librdkafka.md), [libzookeeper_mt](docs/install-libzookeeper_mt.md), [libuv(>v1.6.0)](docs/install-libuv.md) manually, then
 
 	```
 	cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install
