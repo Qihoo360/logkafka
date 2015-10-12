@@ -29,6 +29,10 @@ function main()
 
     $hostnameOpt = new Option(null, 'hostname', Getopt::REQUIRED_ARGUMENT);
     $hostnameOpt -> setDescription('The hostname of machine which holds log files');
+    $hostnameOpt -> setValidation(function($value) {
+        $ret = AdminUtils::isHostnameValid($value);
+        return $ret['valid'];
+    });
 
     $log_pathOpt = new Option(null, 'log_path', Getopt::REQUIRED_ARGUMENT);
     $log_pathOpt -> setDescription('The log file path, like "/usr/local/apache2/logs/access_log.%Y%m%d"');
@@ -530,6 +534,28 @@ class AdminUtils
         return true;
     }/*}}}*/
 
+    static function isHostnameValid($hostname)
+    {/*{{{*/
+        $ret = array('valid'=>true, 'data'=>'');
+
+        if (preg_match('/localhost/', $hostname)) { // do not use localhost
+            $ret = array('valid'=>false, 'data'=>'use the real hostname rather than localhost!');
+            echo $ret['data'], PHP_EOL;
+            return $ret;
+        }
+
+        $validHostnameRegex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
+
+        if (!preg_match("/$validHostnameRegex/", $hostname)) {
+            $ret = array('valid'=>false, 'data'=>'invalid hostname!');
+            echo $ret['data'], PHP_EOL;
+            return $ret;
+        }
+
+        // valid hostname.
+        return $ret;
+    }/*}}}*/
+
     static function isFilenameValid($filename)
     {/*{{{*/
         if (strpbrk($filename, "\\/?*:|\"<>") === FALSE) {
@@ -547,13 +573,13 @@ class AdminUtils
         $ret = array('valid'=>true, 'data'=>'');
 
         if (!preg_match('/^\//', $filepath)) {   // first char is slash
-            $ret = array('valid'=>false, 'data'=>'第一个字符必须是/');
+            $ret = array('valid'=>false, 'data'=>'the first char of absolute file path must be slash /');
             echo $ret['data'], PHP_EOL;
             return $ret;
         }
 
         if (preg_match('/\/{2,}/', $filepath)) {  // no continuous slash
-            $ret = array('valid'=>false, 'data'=>'不可以有连续的/');
+            $ret = array('valid'=>false, 'data'=>'the absolute file path can not contain continuous slash /');
             echo $ret['data'], PHP_EOL;
             return $ret;
         }
@@ -563,7 +589,7 @@ class AdminUtils
         {
             if (empty($item)) continue;
             if (!self::isFilenameValid($item)) { // illegal part
-                $ret = array('valid'=>false, 'data'=>'不能包含特殊字符');
+                $ret = array('valid'=>false, 'data'=>'the absolute file path can not contain special characters');
                 echo $ret['data'], PHP_EOL;
                 return $ret;
             }
