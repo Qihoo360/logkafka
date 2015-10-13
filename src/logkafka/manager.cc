@@ -534,7 +534,7 @@ TailWatcher* Manager::setupWatcher(
     if (!output->init(m_zookeeper, conf.kafka_topic_conf.compression_codec)) {
         LERROR << "Fail to init kafka output";
         delete output;
-        return false;
+        return NULL;
     };
 
     output->setKafkaTopicConf(conf.kafka_topic_conf);
