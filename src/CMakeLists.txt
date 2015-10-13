@@ -22,6 +22,9 @@ ENDIF()
 FILE(GLOB ALL_SRCS */*)
 LIST(REMOVE_ITEM ALL_SRCS logkafka/main.cc) # remove "main.cc" from "*.cc" file list
 ADD_LIBRARY(logkafka_lib ${ALL_SRCS})
+ADD_DEPENDENCIES(logkafka_lib libuv)
+ADD_DEPENDENCIES(logkafka_lib librdkafka)
+ADD_DEPENDENCIES(logkafka_lib libzookeeper_mt)
 
 SET(CMAKE_SOURCE_DIR .)
 
