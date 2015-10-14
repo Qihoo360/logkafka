@@ -22,9 +22,6 @@ ENDIF()
 FILE(GLOB ALL_SRCS */*)
 LIST(REMOVE_ITEM ALL_SRCS logkafka/main.cc) # remove "main.cc" from "*.cc" file list
 ADD_LIBRARY(logkafka_lib ${ALL_SRCS})
-ADD_DEPENDENCIES(logkafka_lib libuv)
-ADD_DEPENDENCIES(logkafka_lib librdkafka)
-ADD_DEPENDENCIES(logkafka_lib libzookeeper_mt)
 
 SET(CMAKE_SOURCE_DIR .)
 
@@ -169,6 +166,7 @@ IF (INSTALL_LIBRDKAFKA)
     add_library(librdkafka STATIC IMPORTED)
     set_property(TARGET librdkafka PROPERTY IMPORTED_LOCATION ${install_dir}/lib/librdkafka.a)
     add_dependencies(librdkafka project_librdkafka)
+    ADD_DEPENDENCIES(logkafka_lib project_librdkafka)
 
     TARGET_LINK_LIBRARIES(logkafka librdkafka)
     INCLUDE_DIRECTORIES(${install_dir}/include)
@@ -194,6 +192,7 @@ IF (INSTALL_LIBZOOKEEPER_MT)
     add_library(libzookeeper_mt STATIC IMPORTED)
     set_property(TARGET libzookeeper_mt PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libzookeeper_mt.a)
     add_dependencies(libzookeeper_mt project_libzookeeper_mt)
+    ADD_DEPENDENCIES(logkafka_lib project_libzookeeper_mt)
 
     TARGET_LINK_LIBRARIES(logkafka libzookeeper_mt)
     INCLUDE_DIRECTORIES(${install_dir}/include)
@@ -222,6 +221,7 @@ IF (INSTALL_LIBUV)
     add_library(libuv STATIC IMPORTED)
     set_property(TARGET libuv PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libuv.a)
     add_dependencies(libuv project_libuv)
+    ADD_DEPENDENCIES(logkafka_lib project_libuv)
 
     TARGET_LINK_LIBRARIES(logkafka libuv)
     INCLUDE_DIRECTORIES(${install_dir}/include)

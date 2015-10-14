@@ -182,4 +182,61 @@ IF (test)
       MESSAGE(FATAL_ERROR "Failed to find libz libraries")
   ENDIF (LIBZ_INCLUDE_DIR AND LIBZ_LIBRARIES)
 
+  ################################
+  # External Projects
+  ################################
+  include(ExternalProject)
+  
+  # librdkafka 
+  IF (INSTALL_LIBRDKAFKA)
+  
+      MESSAGE(STATUS "installing librdkafka ...")
+      CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
+  
+      ExternalProject_Get_Property(project_librdkafka install_dir)
+      add_library(librdkafka STATIC IMPORTED)
+      set_property(TARGET librdkafka PROPERTY IMPORTED_LOCATION ${install_dir}/lib/librdkafka.a)
+
+      ADD_DEPENDENCIES(runUnitTests project_librdkafka)
+  
+      TARGET_LINK_LIBRARIES(runUnitTests librdkafka)
+      INCLUDE_DIRECTORIES(${install_dir}/include)
+  
+  ENDIF (INSTALL_LIBRDKAFKA)
+  
+  # libzookeeper_mt 
+  IF (INSTALL_LIBZOOKEEPER_MT)
+  
+      MESSAGE(STATUS "installing libzookeeper_mt ...")
+      CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
+  
+      ExternalProject_Get_Property(project_libzookeeper_mt install_dir)
+      add_library(libzookeeper_mt STATIC IMPORTED)
+      set_property(TARGET libzookeeper_mt PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libzookeeper_mt.a)
+
+
+      ADD_DEPENDENCIES(runUnitTests project_libzookeeper_mt)
+  
+      TARGET_LINK_LIBRARIES(runUnitTests libzookeeper_mt)
+      INCLUDE_DIRECTORIES(${install_dir}/include)
+  
+  ENDIF (INSTALL_LIBZOOKEEPER_MT)
+  
+  # libuv 
+  IF (INSTALL_LIBUV)
+  
+      MESSAGE(STATUS "installing libuv ...")
+      CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
+  
+      ExternalProject_Get_Property(project_libuv install_dir)
+      add_library(libuv STATIC IMPORTED)
+      set_property(TARGET libuv PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libuv.a)
+
+      ADD_DEPENDENCIES(runUnitTests project_libuv)
+  
+      TARGET_LINK_LIBRARIES(runUnitTests libuv)
+      INCLUDE_DIRECTORIES(${install_dir}/include)
+  
+  ENDIF (INSTALL_LIBUV)
+
 endif()
