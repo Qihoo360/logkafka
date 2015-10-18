@@ -6,6 +6,8 @@ See [FAQ](docs/FAQ.md) if you wanna deploy it in production environment.
 
 ![logkafka](docs/imgs/logkafka.png?raw=true "logkafka")
 
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Qihoo360/logkafka?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 ## Supports
 
 * log collecting configuration management with zookeeper
