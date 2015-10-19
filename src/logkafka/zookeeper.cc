@@ -255,6 +255,7 @@ bool Zookeeper::refreshBrokerUrls()
         return false;
     }
 
+    m_broker_urls = "";
     vector<string>::const_iterator iter;
     for (iter = ids.begin(); iter != ids.end(); ++iter) {
         string host, port;
@@ -271,6 +272,8 @@ bool Zookeeper::refreshBrokerUrls()
         m_broker_urls.append(":");
         m_broker_urls.append(port);
     }
+
+    LDEBUG << "broker urls: " << m_broker_urls.c_str();
 
     return true;
 }/*}}}*/
