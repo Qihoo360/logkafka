@@ -56,7 +56,7 @@ class TailWatcher
         ~TailWatcher();
 
         bool init(uv_loop_t *loop, 
-                string path_pattern, 
+                string path_pattern,
                 string path, 
                 PositionEntry *position_entry,
                 unsigned long stat_silent_max_ms,
@@ -67,6 +67,7 @@ class TailWatcher
                 UpdateFunc updateWatcher,
                 ReceiveFunc receiveLines,
                 TaskConf conf,
+                Manager *manager,
                 Output *output);
 
         static void onNotify(void *arg);

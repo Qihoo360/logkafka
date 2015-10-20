@@ -33,6 +33,7 @@ TailWatcher::TailWatcher()
     m_stat_trigger = NULL;
     m_rotate_handler = NULL;
     m_output = NULL;
+    m_manager = NULL;
 }/*}}}*/
 
 TailWatcher::~TailWatcher()
@@ -59,6 +60,7 @@ bool TailWatcher::init(uv_loop_t *loop,
         UpdateFunc updateWatcher,
         ReceiveFunc receiveLines,
         TaskConf conf,
+        Manager *manager,
         Output *output)
 {/*{{{*/
     /* We will not close watch until stat change time expired m_stat_silent_max_ms, 
@@ -75,6 +77,7 @@ bool TailWatcher::init(uv_loop_t *loop,
     m_updateWatcher = updateWatcher;
     m_receive_func = receiveLines;
     m_conf = conf;
+    m_manager = manager;
     m_output = output; 
 
     m_loop = loop;

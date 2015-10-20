@@ -553,6 +553,7 @@ TailWatcher* Manager::setupWatcher(
             updateWatcherRotate, 
             receiveLines,
             conf,
+            this,
             output);
 
     if (!res) {
@@ -695,7 +696,7 @@ void Manager::updateWatcherRotate(Manager *manager,
         PositionEntry *position_entry)
 {/*{{{*/
     LINFO << "Update watcher rotate"
-        << ", path_pattern" << path_pattern
+        << ", path_pattern " << path_pattern
         << ", path " << path;
     ScopedLock l(manager->m_tail_watchers_mutex);
 
@@ -707,14 +708,14 @@ void Manager::updateWatcherRotate(Manager *manager,
 
     if (!tw->isActive()) {
         manager->closeWatcher(tw, true, false); 
-        delete tw; iter->second = NULL;
         position_entry->updatePos(0); // read from head
-        manager->m_tails[path] = manager->setupWatcher(
+        manager->m_tails[path_pattern] = manager->setupWatcher(
                 tw->m_conf,
                 path_pattern, 
                 path, 
                 position_entry, 
                 manager->m_tasks[path_pattern]->getEnabled());
+        delete tw;
     }
 }/*}}}*/
 
