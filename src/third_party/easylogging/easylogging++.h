@@ -255,6 +255,7 @@
 #   include <sys/system_properties.h>
 #endif // _ELPP_NDK
 #if _ELPP_OS_UNIX
+#   include <libgen.h>
 #   include <sys/stat.h>
 #   include <sys/time.h>
 #   if (_ELPP_ENABLE_MUTEX)

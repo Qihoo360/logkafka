@@ -22,7 +22,7 @@
 #ifndef BASE_MUTEX_H_
 #define BASE_MUTEX_H_
 
-#include <asm/errno.h> 
+#include <errno.h> 
 #include <pthread.h>
 
 namespace base {

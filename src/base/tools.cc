@@ -215,11 +215,7 @@ off_t getFsize(FILE *fp)
 
 string sig2str(int signum)
 {/*{{{*/
-#ifdef _GNU_SOURCE
     return string(strsignal(signum));
-#else
-    return int2str(signum);
-#endif
 }/*}}}*/
 
 long long hexstr2num(const char *buf, long long default_num)
