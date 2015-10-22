@@ -90,9 +90,17 @@ Note: If you already have kafka and zookeeper installed, you can start from step
    ```
    
    * run
+
+   Run in the foreground
    
    ```
    _install/bin/logkafka -f _install/conf/logkafka.conf -e _install/conf/easylogging.conf
+   ```
+
+   Or as a daemon
+
+   ```
+   _install/bin/logkafka -f _install/conf/logkafka.conf -e _install/conf/easylogging.conf --daemon
    ```
    
 3. Configs Management

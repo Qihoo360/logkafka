@@ -33,11 +33,12 @@ class Option
     public:
         Option();
         Option(int argc, char *argv[]);
-        void parseArgs(int argc, char *argv[], Option &config);
+        void parseArgs(int argc, char *argv[], Option &option);
 
     public:
         string logkafka_config_path;
         string easylogging_config_path;
+        bool daemon;
 };
 
 } // namespace logkafka

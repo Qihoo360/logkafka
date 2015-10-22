@@ -42,13 +42,67 @@ _INITIALIZE_EASYLOGGINGPP
 using namespace std;
 using namespace logkafka;
 
+int run(Option &option);
+int daemonize(int (*run)(Option &), Option &option);
+
 int main(int argc, char** argv)
 {
     /* init option with args */
     Option opt(argc, argv);
+    
+    if (!opt.daemon) {
+        return run(opt);
+    } else {
+        return daemonize(run, opt);
+    }
 
+    return EXIT_SUCCESS;
+}
+
+int daemonize(int (*run)(Option &), Option &option)
+{
+    /* Our process ID and Session Id */
+    pid_t pid, sid;
+    /* Fork off the parent process */
+    pid = fork();
+    if (pid < 0) {
+        exit(EXIT_FAILURE);
+    }
+
+    /* If we got a good PID, then
+     * we can exit the parent process. 
+     * */
+    if (pid > 0) {
+        exit(EXIT_SUCCESS);
+    }
+
+    /* Change the file mode mask */
+    umask(0);
+
+    /* Open any logs here */
+
+    /* Create a new SID for the child process */
+    sid = setsid();
+    if (sid < 0) {
+        /* Log the failure */
+        exit(EXIT_FAILURE);
+    }
+
+    /* Close out the standard file descriptors */
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+
+    /* Daemon-specific initialization goes here */
+    run(option);
+
+    return EXIT_SUCCESS;
+}
+
+int run(Option &option)
+{
     /* init easylogging */
-    easyloggingpp::Configurations confFromFile(opt.easylogging_config_path);
+    easyloggingpp::Configurations confFromFile(option.easylogging_config_path);
     easyloggingpp::Loggers::reconfigureAllLoggers(confFromFile);
     easyloggingpp::Configurations defaultConf;
     defaultConf.setToDefault();
@@ -56,8 +110,9 @@ int main(int argc, char** argv)
 
     /* init logkafka config */
     Config *lk_cfg = new Config();
-    if (!lk_cfg->init(opt.logkafka_config_path.c_str())) {
+    if (!lk_cfg->init(option.logkafka_config_path.c_str())) {
         cout << "Fail to init logkafka config, please check log" << endl;
+        LERROR << "Fail to init logkafka config, please check log";
         delete lk_cfg;
         return EXIT_FAILURE;
     }
@@ -67,12 +122,14 @@ int main(int argc, char** argv)
 
     if (!lk->init()) {
         cout << "Fail to init logkafka, please check log" << endl;
+        LERROR << "Fail to init logkafka , please check log";
         delete lk;
         return EXIT_FAILURE;
     }
 
     if (!lk->start()) {
         cout << "Fail to start logkafka, please check log" << endl;
+        LERROR << "Fail to start logkafka, please check log";
         return EXIT_FAILURE;
     }
 

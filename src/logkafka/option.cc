@@ -32,13 +32,15 @@ namespace logkafka {
 
 Option::Option()
     : logkafka_config_path(""),
-      easylogging_config_path("")
+      easylogging_config_path(""),
+      daemon(false)
 {/*{{{*/
 }/*}}}*/
 
 Option::Option(int argc, char *argv[])
     : logkafka_config_path(""),
-      easylogging_config_path("")
+      easylogging_config_path(""),
+      daemon(false)
 {/*{{{*/
     parseArgs(argc, argv, *this); 
 }/*}}}*/
@@ -62,10 +64,13 @@ void Option::parseArgs(int argc, char *argv[], Option &option)
                 option.easylogging_config_path, "EASYLOGGING_CONFIG_PATH");
         cmd.add(arg_easylogging_config_path);
 
+        SwitchArg arg_daemon("d", "daemon", "Run as a daemon.", cmd, false, NULL);
+
         cmd.parse(argc, &arg_vec[0]);
 
         option.logkafka_config_path = arg_config_path.getValue();
         option.easylogging_config_path = arg_easylogging_config_path.getValue();
+        option.daemon = arg_daemon.getValue();
     } catch (const ArgException &e) {
         std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
         exit(EXIT_FAILURE);
