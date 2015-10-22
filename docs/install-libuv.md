@@ -1,7 +1,7 @@
-## install libgdbm
+## install libuv
 
 
-For Centos, just run `sudo yum install -y gdbm`
+For Centos, just run `sudo yum install -y libuv`
   
 Or, build from source
   
