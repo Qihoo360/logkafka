@@ -152,84 +152,15 @@ include(ExternalProject)
 
 # librdkafka 
 IF (INSTALL_LIBRDKAFKA)
-
-    MESSAGE(STATUS "installing librdkafka ...")
-    CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
-
-    ExternalProject_Add(project_librdkafka
-        GIT_REPOSITORY https://github.com/edenhill/librdkafka.git
-        GIT_TAG 0.8.6
-        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/librdkafka
-        CONFIGURE_COMMAND cd <SOURCE_DIR> && ./configure --prefix=<INSTALL_DIR>
-        BUILD_COMMAND cd <SOURCE_DIR> && make
-        INSTALL_COMMAND cd <SOURCE_DIR> && make install
-    )
-
-    ExternalProject_Get_Property(project_librdkafka install_dir)
-
-    #add_library(librdkafka SHARED IMPORTED)
-    #set_property(TARGET librdkafka PROPERTY IMPORTED_LOCATION ${install_dir}/lib/librdkafka.so)
-    add_library(librdkafka STATIC IMPORTED)
-    set_property(TARGET librdkafka PROPERTY IMPORTED_LOCATION ${install_dir}/lib/librdkafka.a)
-    add_dependencies(librdkafka project_librdkafka)
-    ADD_DEPENDENCIES(logkafka_lib project_librdkafka)
-
-    TARGET_LINK_LIBRARIES(logkafka librdkafka)
-    INCLUDE_DIRECTORIES(${install_dir}/include)
-
+    INCLUDE(Buildlibrdkafka)
 ENDIF (INSTALL_LIBRDKAFKA)
 
 # libzookeeper_mt 
 IF (INSTALL_LIBZOOKEEPER_MT)
-
-    MESSAGE(STATUS "installing libzookeeper_mt ...")
-    CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
-
-    ExternalProject_Add(project_libzookeeper_mt
-        URL http://archive.apache.org/dist/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
-        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libzookeeper_mt
-        CONFIGURE_COMMAND cd <SOURCE_DIR>/src/c && ./configure --prefix=<INSTALL_DIR>
-        BUILD_COMMAND cd <SOURCE_DIR>/src/c && make -j4
-        INSTALL_COMMAND cd <SOURCE_DIR>/src/c && make install
-    )
-
-    ExternalProject_Get_Property(project_libzookeeper_mt install_dir)
-
-    add_library(libzookeeper_mt STATIC IMPORTED)
-    set_property(TARGET libzookeeper_mt PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libzookeeper_mt.a)
-    add_dependencies(libzookeeper_mt project_libzookeeper_mt)
-    ADD_DEPENDENCIES(logkafka_lib project_libzookeeper_mt)
-
-    TARGET_LINK_LIBRARIES(logkafka libzookeeper_mt)
-    INCLUDE_DIRECTORIES(${install_dir}/include)
-
+    INCLUDE(Buildlibzookeeper_mt)
 ENDIF (INSTALL_LIBZOOKEEPER_MT)
 
 # libuv 
 IF (INSTALL_LIBUV)
-
-    MESSAGE(STATUS "installing libuv ...")
-    CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
-
-    ExternalProject_Add(project_libuv
-        GIT_REPOSITORY https://github.com/libuv/libuv.git
-        GIT_TAG v1.6.0
-        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libuv
-        CONFIGURE_COMMAND cd <SOURCE_DIR> && sh autogen.sh && ./configure --prefix=<INSTALL_DIR>
-        BUILD_COMMAND cd <SOURCE_DIR> && make
-        INSTALL_COMMAND cd <SOURCE_DIR> && make install
-    )
-
-    ExternalProject_Get_Property(project_libuv install_dir)
-
-    #add_library(libuv SHARED IMPORTED)
-    #set_property(TARGET libuv PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libuv.so)
-    add_library(libuv STATIC IMPORTED)
-    set_property(TARGET libuv PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libuv.a)
-    add_dependencies(libuv project_libuv)
-    ADD_DEPENDENCIES(logkafka_lib project_libuv)
-
-    TARGET_LINK_LIBRARIES(logkafka libuv)
-    INCLUDE_DIRECTORIES(${install_dir}/include)
-
+    INCLUDE(Buildlibuv)
 ENDIF (INSTALL_LIBUV)

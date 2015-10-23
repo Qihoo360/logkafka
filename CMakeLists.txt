@@ -10,6 +10,18 @@ SET (PROJECT_VERSION_PATCH 0)
 #define PROJECT_VERSION_PATCH @PROJECT_VERSION_PATCH@
 
 ###############################
+# Initialize System Info 
+###############################
+
+IF (APPLE)
+    IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        EXEC_PROGRAM(sw_vers ARGS -productVersion OUTPUT_VARIABLE OS_X_VERSION)
+        STRING(REGEX MATCH "([0-9]+)\\.([0-9]+)" OS_X_VERSION ${OS_X_VERSION})
+        MESSAGE(STATUS "OS_X_VERSION=${OS_X_VERSION}")
+    ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+ENDIF(APPLE)
+
+###############################
 # Initialize CXXFLAGS
 ###############################
 include(CheckCXXCompilerFlag)
