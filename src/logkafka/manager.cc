@@ -549,7 +549,6 @@ TailWatcher* Manager::setupWatcher(
             true,
             conf.log_conf.batchsize,
             m_line_max_bytes,
-            enabled, 
             updateWatcherRotate, 
             receiveLines,
             conf,
@@ -682,10 +681,12 @@ void Manager::updateWatchers(set<string> path_patterns)
 
         if (task->getEnabled() && !tail->getEnabled()) {
             tail->start();
+            tail->setEnabled(true);
         }
 
         if (!task->getEnabled() && tail->getEnabled()) {
             tail->stop(false);
+            tail->setEnabled(false);
         }
     }
 }/*}}}*/

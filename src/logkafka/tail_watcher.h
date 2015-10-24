@@ -63,7 +63,6 @@ class TailWatcher
                 bool read_from_head,
                 unsigned long max_line_at_once,
                 unsigned long line_max_bytes, 
-                bool enabled,
                 UpdateFunc updateWatcher,
                 ReceiveFunc receiveLines,
                 TaskConf conf,
@@ -78,7 +77,8 @@ class TailWatcher
         void stop(bool close_io);
 
         bool isActive();
-        bool getEnabled() { return m_enabled; };
+        bool getEnabled() { return m_conf.valid; };
+        bool setEnabled(bool enabled) { m_conf.valid = enabled; return true; };
         string getPath();
         static bool isStateSilentMaxMsValid(unsigned long stat_silent_max_ms);
 
@@ -131,7 +131,6 @@ class TailWatcher
         unsigned long m_max_line_at_once;
         unsigned long m_line_max_bytes;
         unsigned long m_stat_silent_max_ms;
-        bool m_enabled;
 
     private:
         Mutex m_io_handler_mutex;

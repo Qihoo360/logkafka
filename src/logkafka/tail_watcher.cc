@@ -56,7 +56,6 @@ bool TailWatcher::init(uv_loop_t *loop,
         bool read_from_head,
         unsigned long max_line_at_once,
         unsigned long line_max_bytes, 
-        bool enabled,
         UpdateFunc updateWatcher,
         ReceiveFunc receiveLines,
         TaskConf conf,
@@ -73,7 +72,6 @@ bool TailWatcher::init(uv_loop_t *loop,
     m_read_from_head = read_from_head;
     m_max_line_at_once = max_line_at_once;
     m_line_max_bytes = line_max_bytes;
-    m_enabled = enabled;
     m_updateWatcher = updateWatcher;
     m_receive_func = receiveLines;
     m_conf = conf;
