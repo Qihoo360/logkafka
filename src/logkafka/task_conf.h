@@ -27,6 +27,7 @@
 #include <string>
 
 #include "base/tools.h"
+#include "logkafka/config.h"
 
 #include "easylogging/easylogging++.h"
 
@@ -188,8 +189,12 @@ struct TaskStat
 
 struct Task
 {
+    Task(unsigned long path_queue_max_size): path_queue_max_size(path_queue_max_size) {};
+
+    unsigned long path_queue_max_size;
     TaskConf conf;
     TaskStat stat;
+
     string getPath() { return getFirstPath(); };
     string getFirstPath() { return stat.getPath(); };
     void delFirstPath() { stat.paths.pop(); };
@@ -202,6 +207,11 @@ struct Task
         } else {
             string last_path = stat.paths.back();
             if (path != last_path) {
+                if (stat.paths.size() >= path_queue_max_size) {
+                    LERROR << "Fail to add path " << path 
+                           << ", path queue size >= " << path_queue_max_size;
+                    return false;
+                }
                 stat.paths.push(path);
                 LINFO << "Add path " << path;
                 return true;

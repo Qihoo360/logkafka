@@ -329,7 +329,7 @@ void Manager::addTasks(set<string> path_patterns)
     set<string>::const_iterator iter;
     for (iter = path_patterns.begin(); iter != path_patterns.end(); ++iter) {
         string path_pattern = *iter;
-        Task *task = new Task();
+        Task *task = new Task(m_config->path_queue_max_size);
         task->conf = m_task_confs[path_pattern];
 
         if (m_tasks.find(path_pattern) != m_tasks.end()) {

@@ -54,6 +54,7 @@ class Config {
         unsigned long refresh_interval;
         unsigned long message_send_max_retries;
         unsigned long stat_silent_max_ms;
+        unsigned long path_queue_max_size;
 
     private:
         Config(const Config &config);

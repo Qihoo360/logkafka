@@ -49,6 +49,7 @@ Config::Config()
         CFG_INT("refresh_interval", DEFAULT_REFRESH_INTERVAL, CFGF_NONE),
         CFG_INT("message_send_max_retries", DEFAULT_MESSAGE_SEND_MAX_RETRIES,
                 CFGF_NONE),
+        CFG_INT("path_queue_max_size", DEFAULT_PATH_QUEUE_MAX_SIZE, CFGF_NONE),
         CFG_END()
     };
 
@@ -88,6 +89,7 @@ bool Config::init(const char* filepath)
     zookeeper_upload_interval = cfg_getint(m_cfg, "zookeeper_upload_interval");
     refresh_interval = cfg_getint(m_cfg, "refresh_interval");
     message_send_max_retries = cfg_getint(m_cfg, "message_send_max_retries");
+    path_queue_max_size = cfg_getint(m_cfg, "path_queue_max_size");
 
     if (!isAbsPath(pos_path.c_str())) {
         pos_path = realdir_s + '/' + pos_path;
