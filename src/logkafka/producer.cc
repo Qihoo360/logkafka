@@ -64,8 +64,7 @@ void Producer::rdkafkaLogger(const rd_kafka_t *rk,
 
 bool Producer::init(Zookeeper& zookeeper, 
     const string &compression_codec,
-    long long message_max_bytes,
-    long long message_send_max_retries)
+    const KafkaConf &kafka_conf)
 {/*{{{*/
     char errstr[512];
 
@@ -83,14 +82,21 @@ bool Producer::init(Zookeeper& zookeeper,
     }
 
     if (rd_kafka_conf_set(m_conf, "message.max.bytes",
-                int2Str(message_max_bytes).c_str(),
+                int2Str(kafka_conf.message_max_bytes).c_str(),
                 errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
         LERROR << "Fail to set kafka conf, " << errstr;
         return false;
     }
 
     if (rd_kafka_conf_set(m_conf, "message.send.max.retries",
-                int2Str(message_send_max_retries).c_str(),
+                int2Str(kafka_conf.message_send_max_retries).c_str(),
+                errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
+        LERROR << "Fail to set kafka conf, " << errstr;
+        return false;
+    }
+
+    if (rd_kafka_conf_set(m_conf, "queue.buffering.max.messages",
+                int2Str(kafka_conf.queue_buffering_max_messages).c_str(),
                 errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
         LERROR << "Fail to set kafka conf, " << errstr;
         return false;

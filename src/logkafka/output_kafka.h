@@ -40,11 +40,6 @@ using namespace base;
 
 namespace logkafka {
 
-struct KafkaConf {
-    long long message_max_bytes;
-    long long message_send_max_retries; 
-};
-
 class OutputKafka: public virtual Output
 {
     public:

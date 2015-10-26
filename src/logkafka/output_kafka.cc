@@ -59,9 +59,7 @@ bool OutputKafka::initProducer(void *arg, string compression_codec)
         LINFO << "Try to init producer, compression_codec is "
               << iter->first;
         Producer *producer = new Producer();
-        if (!producer->init(*zookeeper, iter->first,
-                    m_kafka_conf.message_max_bytes,
-                    m_kafka_conf.message_send_max_retries))
+        if (!producer->init(*zookeeper, iter->first, m_kafka_conf))
         {
             LERROR << "Fail to init producer, compression_codec is "
                    << iter->first;

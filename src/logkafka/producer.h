@@ -43,6 +43,12 @@ using namespace std;
 
 namespace logkafka {
 
+struct KafkaConf {
+    long long message_max_bytes;
+    long long message_send_max_retries; 
+    long long queue_buffering_max_messages;
+};
+
 class Producer 
 {
     public:
@@ -51,8 +57,7 @@ class Producer
 
         bool init(Zookeeper& zookeeper, 
                 const string &compression_codec,
-                long long message_max_bytes,
-                long long message_send_max_retries);
+                const KafkaConf &kafka_conf);
         void close();
 
         bool send(const vector<string> &messages,

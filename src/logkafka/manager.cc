@@ -84,6 +84,7 @@ bool Manager::initKafkaConf()
 {/*{{{*/
     m_kafka_conf.message_max_bytes = m_config->line_max_bytes;
     m_kafka_conf.message_send_max_retries = m_config->message_send_max_retries;
+    m_kafka_conf.queue_buffering_max_messages = m_config->queue_buffering_max_messages;
 
     return true;
 }/*}}}*/

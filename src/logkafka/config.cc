@@ -30,8 +30,6 @@
 #include "base/tools.h"
 #include "logkafka/tail_watcher.h"
 
-#include "easylogging/easylogging++.h"
-
 using namespace std;
 
 namespace logkafka {
@@ -47,9 +45,11 @@ Config::Config()
         CFG_INT("zookeeper_upload_interval", DEFAULT_ZOOKEEPER_UPLOAD_INTERVAL,
                 CFGF_NONE),
         CFG_INT("refresh_interval", DEFAULT_REFRESH_INTERVAL, CFGF_NONE),
+        CFG_INT("path_queue_max_size", DEFAULT_PATH_QUEUE_MAX_SIZE, CFGF_NONE),
         CFG_INT("message_send_max_retries", DEFAULT_MESSAGE_SEND_MAX_RETRIES,
                 CFGF_NONE),
-        CFG_INT("path_queue_max_size", DEFAULT_PATH_QUEUE_MAX_SIZE, CFGF_NONE),
+        CFG_INT("queue_buffering_max_messages", DEFAULT_QUEUE_BUFFERING_MAX_MESSAGES,
+                CFGF_NONE),
         CFG_END()
     };
 
@@ -82,14 +82,26 @@ bool Config::init(const char* filepath)
     }
     string realdir_s(realdir);
         
-    zk_urls = cfg_getstr(m_cfg, "zk_urls");
-    pos_path = cfg_getstr(m_cfg, "pos_path");
-    line_max_bytes = cfg_getint(m_cfg, "line_max_bytes");
-    stat_silent_max_ms = cfg_getint(m_cfg, "stat_silent_max_ms");
-    zookeeper_upload_interval = cfg_getint(m_cfg, "zookeeper_upload_interval");
+    LINFO << "get logkafka configs: ";
+
+    zk_urls = cfg_getstr(m_cfg, "zk_urls"); 
+    PRINT_VAR(zk_urls);
+    pos_path = cfg_getstr(m_cfg, "pos_path"); 
+    PRINT_VAR(pos_path);
+    line_max_bytes = cfg_getint(m_cfg, "line_max_bytes"); 
+    PRINT_VAR(line_max_bytes);
+    stat_silent_max_ms = cfg_getint(m_cfg, "stat_silent_max_ms"); 
+    PRINT_VAR(stat_silent_max_ms);
+    zookeeper_upload_interval = cfg_getint(m_cfg, "zookeeper_upload_interval"); 
+    PRINT_VAR(zookeeper_upload_interval);
     refresh_interval = cfg_getint(m_cfg, "refresh_interval");
-    message_send_max_retries = cfg_getint(m_cfg, "message_send_max_retries");
+    PRINT_VAR(refresh_interval);
     path_queue_max_size = cfg_getint(m_cfg, "path_queue_max_size");
+    PRINT_VAR(path_queue_max_size);
+    message_send_max_retries = cfg_getint(m_cfg, "message_send_max_retries"); 
+    PRINT_VAR(message_send_max_retries);
+    queue_buffering_max_messages = cfg_getint(m_cfg, "queue_buffering_max_messages"); 
+    PRINT_VAR(queue_buffering_max_messages);
 
     if (!isAbsPath(pos_path.c_str())) {
         pos_path = realdir_s + '/' + pos_path;
