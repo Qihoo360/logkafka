@@ -42,7 +42,7 @@ using namespace base;
 
 namespace logkafka {
 
-typedef bool (*ReceiveFunc)(void *, vector<string> &);
+typedef bool (*ReceiveFunc)(void *, const vector<string> &);
 
 class IOHandler
 {
@@ -75,6 +75,7 @@ class IOHandler
         void *m_receive_func_arg;
 
         char *m_line;
+        vector<string> m_lines;
 
         struct timeval m_last_io_time;
 

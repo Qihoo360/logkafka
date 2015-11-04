@@ -74,12 +74,22 @@ void IOHandler::onNotify(void *arg)
 
     if (NULL == ioh->m_file)
         return;
+    
+    /* handle last unreceived lines */ 
+    if (!ioh->m_lines.empty()) {
+        ioh->updateLastIOTime();
+        if ((*ioh->m_receive_func)(ioh->m_receive_func_arg, ioh->m_lines)) {
+            ioh->m_position_entry->updatePos(ioh->getFilePos());
+            ioh->m_lines.clear();
+        } else {
+            return;
+        }
+    }
 
-    vector<string> lines;
     bool read_more = false;
 
     do {
-        lines.clear();
+        ioh->m_lines.clear();
         read_more = false;
 
         while (true) {
@@ -93,18 +103,18 @@ void IOHandler::onNotify(void *arg)
             if (NULL != line) {
                 size_t len = strlen(ioh->m_line);
                 if (ioh->m_line[len-1] == '\n') ioh->m_line[len-1] = '\0';
-                lines.push_back(string(ioh->m_line));
+                ioh->m_lines.push_back(string(ioh->m_line));
             } else {
                 break;
             }
 
-            if (lines.size() >= ioh->m_max_line_at_once) {
+            if (ioh->m_lines.size() >= ioh->m_max_line_at_once) {
                  read_more = true;
                  break;
             }
         }
 
-        if (!lines.empty()) {
+        if (!ioh->m_lines.empty()) {
             /* XXX: restart one timer here, when timeout, 
              * delete path from corresponding tail watcher.  
              * NOTE: if using just one loop for all watchers,
@@ -114,8 +124,11 @@ void IOHandler::onNotify(void *arg)
              * timeout value, you should take this into consideration.
              */
             ioh->updateLastIOTime();
-            if ((*ioh->m_receive_func)(ioh->m_receive_func_arg, lines)) {
+            if ((*ioh->m_receive_func)(ioh->m_receive_func_arg, ioh->m_lines)) {
                 ioh->m_position_entry->updatePos(ioh->getFilePos());
+                ioh->m_lines.clear();
+            } else {
+                read_more = false;
             }
         }
     } while (read_more);

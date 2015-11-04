@@ -721,7 +721,7 @@ void Manager::updateWatcherRotate(Manager *manager,
     }
 }/*}}}*/
 
-bool Manager::receiveLines(void *output, vector<string> &lines)
+bool Manager::receiveLines(void *output, const vector<string> &lines)
 {/*{{{*/
     if (NULL == output) {
         LERROR << "output function is NULL";
