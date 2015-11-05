@@ -38,17 +38,17 @@ Config::Config()
 {/*{{{*/
     cfg_opt_t opts[] =
     {
-        CFG_STR("zk_urls", DEFAULT_ZK_URLS, CFGF_NONE),
-        CFG_STR("pos_path", DEFAULT_POS_PATH, CFGF_NONE),
-        CFG_INT("line_max_bytes", DEFAULT_LINE_MAX_BYTES, CFGF_NONE),
-        CFG_INT("stat_silent_max_ms", DEFAULT_STAT_SILENT_MAX_MS, CFGF_NONE),
-        CFG_INT("zookeeper_upload_interval", DEFAULT_ZOOKEEPER_UPLOAD_INTERVAL,
+        CFG_STR("zookeeper.urls", DEFAULT_ZK_URLS, CFGF_NONE),
+        CFG_STR("pos.path", DEFAULT_POS_PATH, CFGF_NONE),
+        CFG_INT("line.max.bytes", DEFAULT_LINE_MAX_BYTES, CFGF_NONE),
+        CFG_INT("stat.silent.max.ms", DEFAULT_STAT_SILENT_MAX_MS, CFGF_NONE),
+        CFG_INT("zookeeper.upload.interval", DEFAULT_ZOOKEEPER_UPLOAD_INTERVAL,
                 CFGF_NONE),
-        CFG_INT("refresh_interval", DEFAULT_REFRESH_INTERVAL, CFGF_NONE),
-        CFG_INT("path_queue_max_size", DEFAULT_PATH_QUEUE_MAX_SIZE, CFGF_NONE),
-        CFG_INT("message_send_max_retries", DEFAULT_MESSAGE_SEND_MAX_RETRIES,
+        CFG_INT("refresh.interval", DEFAULT_REFRESH_INTERVAL, CFGF_NONE),
+        CFG_INT("path.queue.max.size", DEFAULT_PATH_QUEUE_MAX_SIZE, CFGF_NONE),
+        CFG_INT("message.send.max.retries", DEFAULT_MESSAGE_SEND_MAX_RETRIES,
                 CFGF_NONE),
-        CFG_INT("queue_buffering_max_messages", DEFAULT_QUEUE_BUFFERING_MAX_MESSAGES,
+        CFG_INT("queue.buffering.max.messages", DEFAULT_QUEUE_BUFFERING_MAX_MESSAGES,
                 CFGF_NONE),
         CFG_END()
     };
@@ -84,23 +84,23 @@ bool Config::init(const char* filepath)
         
     LINFO << "get logkafka configs: ";
 
-    zk_urls = cfg_getstr(m_cfg, "zk_urls"); 
+    zk_urls = cfg_getstr(m_cfg, "zookeeper.urls"); 
     PRINT_VAR(zk_urls);
-    pos_path = cfg_getstr(m_cfg, "pos_path"); 
+    pos_path = cfg_getstr(m_cfg, "pos.path"); 
     PRINT_VAR(pos_path);
-    line_max_bytes = cfg_getint(m_cfg, "line_max_bytes"); 
+    line_max_bytes = cfg_getint(m_cfg, "line.max.bytes"); 
     PRINT_VAR(line_max_bytes);
-    stat_silent_max_ms = cfg_getint(m_cfg, "stat_silent_max_ms"); 
+    stat_silent_max_ms = cfg_getint(m_cfg, "stat.silent.max.ms"); 
     PRINT_VAR(stat_silent_max_ms);
-    zookeeper_upload_interval = cfg_getint(m_cfg, "zookeeper_upload_interval"); 
+    zookeeper_upload_interval = cfg_getint(m_cfg, "zookeeper.upload.interval"); 
     PRINT_VAR(zookeeper_upload_interval);
-    refresh_interval = cfg_getint(m_cfg, "refresh_interval");
+    refresh_interval = cfg_getint(m_cfg, "refresh.interval");
     PRINT_VAR(refresh_interval);
-    path_queue_max_size = cfg_getint(m_cfg, "path_queue_max_size");
+    path_queue_max_size = cfg_getint(m_cfg, "path.queue.max.size");
     PRINT_VAR(path_queue_max_size);
-    message_send_max_retries = cfg_getint(m_cfg, "message_send_max_retries"); 
+    message_send_max_retries = cfg_getint(m_cfg, "message.send.max.retries"); 
     PRINT_VAR(message_send_max_retries);
-    queue_buffering_max_messages = cfg_getint(m_cfg, "queue_buffering_max_messages"); 
+    queue_buffering_max_messages = cfg_getint(m_cfg, "queue.buffering.max.messages"); 
     PRINT_VAR(queue_buffering_max_messages);
 
     if (!isAbsPath(pos_path.c_str())) {
