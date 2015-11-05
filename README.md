@@ -77,15 +77,12 @@ Note: If you already have kafka and zookeeper installed, you can start from step
 
    * local conf
    
-   _install/conf/logkafka.conf
+   Customizing _install/conf/logkafka.conf to your needs
    
    ```
-    zk_urls     = 127.0.0.1:2181             # zookeeper urls
-    pos_path       = ../data/pos.myClusterName  # position saving file, relative to the dir of this file
-    line_max_bytes = 1048576                    # 1M
-    stat_silent_max_ms = 10000                  # 10s
-    zookeeper_upload_interval = 10000           # 10s, interval of uploading processing state to zookeeper
-    refresh_interval = 30000                    # 30s, refresh log file list every 30s
+    zookeeper.urls = 127.0.0.1:2181
+    pos.path       = ../data/pos.myClusterName
+    line.max.bytes = 1048576
     ...
    ```
    
