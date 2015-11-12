@@ -8,8 +8,9 @@ IF (test)
   # Set compile flags
   SET(GCC_COVERAGE_COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
   SET(GCC_COVERAGE_LINK_FLAGS    "-lgcov")
-  SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}" )
-  SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
+  SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}")
+  SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}")
+  ADD_DEFINITIONS(-DGTEST_HAS_TR1_TUPLE=0)
 
   # This adds another subdirectory, which has 'project(gtest)'.
   ADD_SUBDIRECTORY(lib/gtest-1.6.0)
@@ -134,6 +135,26 @@ IF (test)
       ENDIF (LIBUV_INCLUDE_DIR AND LIBUV_LIBRARIES)
   
   ENDIF (NOT INSTALL_LIBUV)
+
+  # pcre2
+  IF (NOT INSTALL_LIBPCRE2)
+  
+      FIND_PACKAGE( libpcre2 REQUIRED)
+      MARK_AS_ADVANCED(
+      LIBPCRE2_INCLUDE_DIR
+      LIBPCRE2_LIBRARIES
+      )
+      IF (LIBPCRE2_INCLUDE_DIR AND LIBPCRE2_LIBRARIES)
+      MESSAGE(STATUS "Found libpcre2 libraries")
+         INCLUDE_DIRECTORIES(${LIBPCRE2_INCLUDE_DIR})
+          MESSAGE( ${LIBPCRE2_LIBRARIES} )
+          MESSAGE( ${LIBPCRE2_INCLUDE_DIR} )
+          TARGET_LINK_LIBRARIES(runUnitTests ${LIBPCRE2_LIBRARIES} )
+      ELSE (LIBPCRE2_INCLUDE_DIR AND LIBPCRE2_LIBRARIES)
+          MESSAGE(FATAL_ERROR "Failed to find libpcre2 libraries")
+      ENDIF (LIBPCRE2_INCLUDE_DIR AND LIBPCRE2_LIBRARIES)
+  
+  ENDIF (NOT INSTALL_LIBPCRE2)
   
   # pthread
   FIND_PACKAGE( libpthread REQUIRED)
@@ -244,5 +265,22 @@ IF (test)
       INCLUDE_DIRECTORIES(${install_dir}/include)
   
   ENDIF (INSTALL_LIBUV)
+
+  # libpcre2 
+  IF (INSTALL_LIBPCRE2)
+  
+      MESSAGE(STATUS "installing libpcre2 ...")
+      CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
+  
+      ExternalProject_Get_Property(project_libpcre2 install_dir)
+      add_library(libpcre2 STATIC IMPORTED)
+      set_property(TARGET libpcre2 PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libpcre2-8.a)
+
+      ADD_DEPENDENCIES(runUnitTests project_libpcre2)
+  
+      TARGET_LINK_LIBRARIES(runUnitTests libpcre2)
+      INCLUDE_DIRECTORIES(${install_dir}/include)
+  
+  ENDIF (INSTALL_LIBPCRE2)
 
 endif()

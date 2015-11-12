@@ -51,4 +51,7 @@
 
 #define FILEPOS_END -1       /* read from file end*/
 
+#define LOGKAFKA_PCRE2
+#define PCRE2_CODE_UNIT_WIDTH 8
+
 #endif // LOGKAFKA_COMMON_H_

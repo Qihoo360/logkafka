@@ -227,5 +227,5 @@ make logkafka_coverage  # run unittest
 
 ## TODO
 
-1. Other Input Source (kafka 0.7)
+1. Regex filter
 2. Multi-line mode

@@ -36,9 +36,14 @@
 
 #include "base/tools.h"
 #include "base/common.h"
+#include "logkafka/common.h"
 #include "logkafka/file_position_entry.h"
 
 #include "easylogging/easylogging++.h"
+
+#ifdef LOGKAFKA_PCRE2
+#include "pcre2.h"
+#endif
 
 using namespace std;
 
