@@ -35,7 +35,7 @@ using namespace std;
 
 namespace logkafka {
 
-struct LogConf{
+struct LogConf {
     /* log file path, example: /usr/local/apache2/logs/access_log.%Y%m%d */
     string log_path;
 
@@ -94,6 +94,32 @@ struct LogConf{
     }/*}}}*/
 };
 
+struct FilterConf {
+    string regex_filter_pattern;
+
+    FilterConf()
+    {/*{{{*/
+        regex_filter_pattern = "";
+    }/*}}}*/
+
+    bool operator==(const FilterConf& hs) const
+    {/*{{{*/
+        return (regex_filter_pattern == hs.regex_filter_pattern);
+    };/*}}}*/
+
+    bool operator!=(const FilterConf& hs) const
+    {/*{{{*/
+        return !operator==(hs);
+    };/*}}}*/
+
+    friend ostream& operator << (ostream& os, const FilterConf& fc)
+    {/*{{{*/
+        os << "regex filter pattern: " << fc.regex_filter_pattern;
+
+        return os;
+    }/*}}}*/
+};
+
 struct KafkaTopicConf {
     string brokers;
     string topic;
@@ -148,19 +174,22 @@ struct TaskConf
 
     LogConf log_conf;
     KafkaTopicConf kafka_topic_conf;
+    FilterConf filter_conf;
 
     bool operator==(const TaskConf& hs) const
     {/*{{{*/
         return (valid == hs.valid) &&
             (log_conf == hs.log_conf) &&
-            (kafka_topic_conf == hs.kafka_topic_conf);
+            (kafka_topic_conf == hs.kafka_topic_conf) &&
+            (filter_conf == hs.filter_conf);
     };/*}}}*/
 
     friend ostream& operator << (ostream& os, const TaskConf& tc)
     {/*{{{*/
         os << "valid: " << tc.valid
            << "log conf" << tc.log_conf 
-           << "kafka topic conf" << tc.kafka_topic_conf;
+           << "kafka topic conf" << tc.kafka_topic_conf
+           << "filter conf" << tc.filter_conf;
 
         return os;
     }/*}}}*/

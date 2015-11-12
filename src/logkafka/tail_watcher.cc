@@ -34,6 +34,7 @@ TailWatcher::TailWatcher()
     m_rotate_handler = NULL;
     m_output = NULL;
     m_manager = NULL;
+    m_filter = NULL;
 }/*}}}*/
 
 TailWatcher::~TailWatcher()
@@ -46,6 +47,7 @@ TailWatcher::~TailWatcher()
     delete m_io_handler; m_io_handler = NULL;
     delete m_rotate_handler; m_rotate_handler = NULL;
     delete m_output; m_output = NULL;
+    delete m_filter; m_filter = NULL;
 }/*}}}*/
 
 bool TailWatcher::init(uv_loop_t *loop, 
@@ -79,6 +81,12 @@ bool TailWatcher::init(uv_loop_t *loop,
     m_output = output; 
 
     m_loop = loop;
+
+    m_filter = new FilterRegex(conf.filter_conf);
+    if (!m_filter->init(NULL)) {
+        LERROR << "Fail to init filter";
+        delete m_filter; m_filter = NULL;
+    }
 
     m_timer_trigger = new TimerWatcher();
     if (!m_timer_trigger->init(m_loop, 0, TIMER_WATCHER_DEFAULT_REPEAT,
@@ -155,7 +163,7 @@ void TailWatcher::onRotate(void *arg, FILE *file)
 
             tw->m_io_handler = new IOHandler();
             bool res = tw->m_io_handler->init(file, pe, max_line_at_once, 
-                    line_max_bytes, tw->m_output, receiveLines);
+                    line_max_bytes, tw->m_filter, tw->m_output, receiveLines);
             if (!res) {
                 delete tw->m_io_handler; tw->m_io_handler = NULL;
                 return;
@@ -174,7 +182,7 @@ void TailWatcher::onRotate(void *arg, FILE *file)
 
                 IOHandler *io_handler = new IOHandler();
                 bool res = io_handler->init(file, pe, max_line_at_once, 
-                        line_max_bytes, tw->m_output, receiveLines);
+                        line_max_bytes, tw->m_filter, tw->m_output, receiveLines);
                 if (!res) {
                     delete io_handler;
                     return;
@@ -190,7 +198,7 @@ void TailWatcher::onRotate(void *arg, FILE *file)
 
                 IOHandler *io_handler = new IOHandler();
                 bool res = io_handler->init(file, pe, max_line_at_once, 
-                        line_max_bytes, tw->m_output, receiveLines);
+                        line_max_bytes, tw->m_filter, tw->m_output, receiveLines);
                 if (!res) {
                     delete io_handler;
                     return;

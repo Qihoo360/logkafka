@@ -32,6 +32,8 @@
 #include "base/stat_watcher.h"
 #include "base/timer_watcher.h"
 #include "logkafka/io_handler.h"
+#include "logkafka/filter.h"
+#include "logkafka/filter_regex.h"
 #include "logkafka/manager.h"
 #include "logkafka/memory_position_entry.h"
 #include "logkafka/output.h"
@@ -131,6 +133,7 @@ class TailWatcher
         unsigned long m_max_line_at_once;
         unsigned long m_line_max_bytes;
         unsigned long m_stat_silent_max_ms;
+        Filter *m_filter;
 
     private:
         Mutex m_io_handler_mutex;

@@ -203,6 +203,12 @@ bool Manager::refreshTaskConfs()
             item.kafka_topic_conf.message_timeout_ms = atoi(message_timeout_ms.c_str());
         } catch(...) { /* default value */ }
 
+        try {
+            string regex_filter_pattern;
+            Json::getValue(log_item, "regex_filter_pattern", regex_filter_pattern);
+            item.filter_conf.regex_filter_pattern = regex_filter_pattern;
+        } catch(...) { /* default value */ }
+
         string path_pattern = (itr->name).GetString();
         if (item.isLegal()) {
             m_task_confs[path_pattern] = item;
@@ -668,7 +674,8 @@ void Manager::updateWatchers(set<string> path_patterns)
         }
 
         if (task->conf.log_conf != tail->m_conf.log_conf 
-                || task->conf.kafka_topic_conf != tail->m_conf.kafka_topic_conf)
+                || task->conf.kafka_topic_conf != tail->m_conf.kafka_topic_conf
+                || task->conf.filter_conf != tail->m_conf.filter_conf)
         {
             closeWatcher(tail, true, false);
             PositionEntryKey pek = {path_pattern, tail->getPath()};
@@ -721,20 +728,26 @@ void Manager::updateWatcherRotate(Manager *manager,
     }
 }/*}}}*/
 
-bool Manager::receiveLines(void *output, const vector<string> &lines)
+bool Manager::receiveLines(void *filter, void *output, const vector<string> &lines)
 {/*{{{*/
     if (NULL == output) {
         LERROR << "output function is NULL";
         return false;
     }
 
-    if (lines.empty()) {
+    Filter *flt = reinterpret_cast<Filter *>(filter);
+    vector<string> valid_lines = lines;
+    if (NULL != flt) {
+        flt->filter(flt, valid_lines);
+    }
+
+    if (valid_lines.empty()) {
         LERROR << "lines is empty";
         return true;
     }
 
     Output *out = reinterpret_cast<Output *>(output);
-    return out->output(out, lines);
+    return out->output(out, valid_lines);
 }/*}}}*/
 
 void Manager::uploadCollectingState(void *arg)

@@ -42,7 +42,7 @@ using namespace base;
 
 namespace logkafka {
 
-typedef bool (*ReceiveFunc)(void *, const vector<string> &);
+typedef bool (*ReceiveFunc)(void *, void *, const vector<string> &);
 
 class IOHandler
 {
@@ -53,7 +53,8 @@ class IOHandler
                   PositionEntry *position_entry,
                   unsigned int max_line_at_once,
                   unsigned int line_max_bytes,
-                  void *receive_func_arg,
+                  void *filter,
+                  void *output,
                   ReceiveFunc receiveLines);
         void close();
         static void onNotify(void *arg);
@@ -72,7 +73,8 @@ class IOHandler
         unsigned int m_max_line_at_once;
         unsigned int m_line_max_bytes;
         ReceiveFunc m_receive_func;
-        void *m_receive_func_arg;
+        void *m_filter;
+        void *m_output;
 
         char *m_line;
         vector<string> m_lines;

@@ -28,6 +28,8 @@ IOHandler::IOHandler()
     m_file = NULL;
     m_line = NULL;
     m_last_io_time = (struct timeval){0};
+    m_filter = NULL;
+    m_output = NULL;
 }/*}}}*/
 
 IOHandler::~IOHandler()
@@ -40,14 +42,16 @@ bool IOHandler::init(FILE *file,
                      PositionEntry *position_entry,
                      unsigned int max_line_at_once,
                      unsigned int line_max_bytes,
-                     void *receive_func_arg,
+                     void *filter,
+                     void *output,
                      ReceiveFunc receiveLines)
 {/*{{{*/
     m_file = file;
     m_position_entry = position_entry;
     m_max_line_at_once = max_line_at_once;
     m_line_max_bytes = line_max_bytes;
-    m_receive_func_arg = receive_func_arg;
+    m_filter = filter;
+    m_output = output;
     m_receive_func = receiveLines;
 
     if (NULL == (m_line = reinterpret_cast<char *>(malloc(m_line_max_bytes)))) {
@@ -78,7 +82,7 @@ void IOHandler::onNotify(void *arg)
     /* handle last unreceived lines */ 
     if (!ioh->m_lines.empty()) {
         ioh->updateLastIOTime();
-        if ((*ioh->m_receive_func)(ioh->m_receive_func_arg, ioh->m_lines)) {
+        if ((*ioh->m_receive_func)(ioh->m_filter, ioh->m_output, ioh->m_lines)) {
             ioh->m_position_entry->updatePos(ioh->getFilePos());
             ioh->m_lines.clear();
         } else {
@@ -124,7 +128,7 @@ void IOHandler::onNotify(void *arg)
              * timeout value, you should take this into consideration.
              */
             ioh->updateLastIOTime();
-            if ((*ioh->m_receive_func)(ioh->m_receive_func_arg, ioh->m_lines)) {
+            if ((*ioh->m_receive_func)(ioh->m_filter, ioh->m_output, ioh->m_lines)) {
                 ioh->m_position_entry->updatePos(ioh->getFilePos());
                 ioh->m_lines.clear();
             } else {
