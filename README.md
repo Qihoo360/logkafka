@@ -39,13 +39,15 @@ The main differences with **flume**, **fluentd**, **logstash** are
 
 * libuv
 
+* libpcre2 
+
 * PHP 5.3 and above (with zookeeper extension)
 
 ## Build
 
 Two methods, choose accordingly.
 
-1. Install [librdkafka(>0.8.6)](docs/install-librdkafka.md), [libzookeeper_mt](docs/install-libzookeeper_mt.md), [libuv(>v1.6.0)](docs/install-libuv.md) manually, then
+1. Install [librdkafka(>0.8.6)](docs/install-librdkafka.md), [libzookeeper_mt](docs/install-libzookeeper_mt.md), [libuv(>v1.6.0)](docs/install-libuv.md), [libpcre2(>10.20)](docs/install-libpcre2.md) manually, then
 
 	```
 	cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install
@@ -57,7 +59,7 @@ Two methods, choose accordingly.
 2. Just let cmake handle the dependencies ( **cmake version >= 3.0.2** ).
 
 	```
-	cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install -DINSTALL_LIBRDKAFKA=ON -DINSTALL_LIBZOOKEEPER_MT=ON  -DINSTALL_LIBUV=ON
+	cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install -DINSTALL_LIBRDKAFKA=ON -DINSTALL_LIBZOOKEEPER_MT=ON  -DINSTALL_LIBUV=ON -DINSTALL_LIBPCRE2=ON
 	cd _build
 	make -j4
 	make install
