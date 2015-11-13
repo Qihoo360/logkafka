@@ -106,6 +106,13 @@ function main()
         return (is_numeric($value) && (int)$value >= 0);
     });
 
+    $regex_filter_patternOpt = new Option(null, 'regex_filter_pattern', Getopt::REQUIRED_ARGUMENT);
+    $regex_filter_patternOpt -> setDescription("Optional regex filter pattern, the messages matching this pattern will be dropped");
+    $regex_filter_patternOpt -> setDefaultValue('');
+    $regex_filter_patternOpt -> setValidation(function($value) {
+        return AdminUtils::isRegexFilterPatternValid($value);
+    });
+
     $validOpt = new Option(null, 'valid', Getopt::REQUIRED_ARGUMENT);
     $validOpt -> setDescription('Enable now or not');
     $validOpt -> setDefaultValue('true');
@@ -132,6 +139,7 @@ function main()
         $batchsizeOpt,
         $follow_lastOpt,
         $message_timeout_msOpt,
+        $regex_filter_patternOpt,
         $validOpt,
     ));
 
@@ -333,6 +341,7 @@ class AdminUtils
         'compression_codec' => array('type'=>'string', 'default'=>'none'),
         'batchsize'   => array('type'=>'integer', 'default'=>'1000'),
         'message_timeout_ms'   => array('type'=>'integer', 'default'=>'0'),
+        'regex_filter_pattern'   => array('type'=>'string', 'default'=>''),
         'follow_last' => array('type'=>'bool', 'default'=>'true'),
         'valid'       => array('type'=>'bool', 'default'=>'true'),
         );
@@ -614,6 +623,17 @@ class AdminUtils
     static public function isCompressionCodecValid($compression_codec) 
     {/*{{{*/
         return in_array($compression_codec, self::$COMPRESSION_CODECS);
+    }/*}}}*/
+
+    static public function isRegexFilterPatternValid($regex_filter_pattern) 
+    {/*{{{*/
+        $subject = 'This is some text I am searching in';
+        if (@preg_match("/$regex_filter_pattern/", $subject) === false) {
+            // the regex failed and is likely invalid
+            return false;
+        }
+
+        return true;
     }/*}}}*/
 
     static public function checkZkState($zkClient)

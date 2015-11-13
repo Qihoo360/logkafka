@@ -742,7 +742,7 @@ bool Manager::receiveLines(void *filter, void *output, const vector<string> &lin
     }
 
     if (valid_lines.empty()) {
-        LERROR << "lines is empty";
+        LINFO << "lines is empty";
         return true;
     }
 
