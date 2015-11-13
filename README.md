@@ -15,6 +15,7 @@ See [FAQ](docs/FAQ.md) if you wanna deploy it in production environment.
 * log file rotating
 * batching messages
 * compression (none, gzip, snappy)
+* [message regex filter](docs/Features.md#Regex Filter)
 
 ## Differences with other log aggregation and monitoring tools 
 The main differences with **flume**, **fluentd**, **logstash** are
@@ -184,8 +185,7 @@ Note: If you already have kafka and zookeeper installed, you can start from step
 		)
 	   ```
 	   
-	More details about configuration management, see `php tools/log_config.php --help`.  
- 
+	More details about configuration management, see `php tools/log_config.php --help`.
    
 ## Benchmark
 
