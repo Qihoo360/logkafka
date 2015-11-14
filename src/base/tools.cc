@@ -116,7 +116,7 @@ bool str2Bool(std::string str)
 
 const char* realDir(const char *filepath, char *realdir)
 {/*{{{*/
-    char buf[PATH_MAX];
+    char buf[PATH_MAX + 1] = {'\0'};
 
     if (NULL == realpath(filepath, buf)) {
         fprintf(stderr, "get realpath error: %s\n", strerror(errno));

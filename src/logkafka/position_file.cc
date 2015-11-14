@@ -94,13 +94,15 @@ PositionFile* PositionFile::parse(FILE *file)
     fseek(file, 0, SEEK_SET);
     long fsize = getFsize(file);
 
-    char *buf = (char *)malloc(fsize);
+    char *buf = (char *)malloc(fsize + 1);
     if (NULL == buf) {
-        LERROR << "Fail to malloc " << fsize << " bytes";
+        LERROR << "Fail to malloc " << (fsize + 1) << " bytes";
         return NULL;
     }
 
-    char *line;
+    bzero(buf, fsize + 1);
+
+    char *line = NULL;
     while (NULL != (line = fgets(buf, fsize, file))) {
         off_t pos;
         ino_t inode;
@@ -228,13 +230,15 @@ bool PositionFile::compact(FILE *file)
     fseek(file, 0, SEEK_SET);
     long fsize = getFsize(file);
 
-    char *buf = reinterpret_cast<char *>(malloc(fsize));
+    char *buf = reinterpret_cast<char *>(malloc(fsize + 1));
     if (NULL == buf) {
-        LERROR << "Fail to malloc " << fsize << " bytes";
+        LERROR << "Fail to malloc " << (fsize + 1) << " bytes";
         return false;
     }
 
-    char *line;
+    bzero(buf, fsize + 1);
+
+    char *line = NULL;
     map<string, string> existent_entries;
     while (NULL != (line = fgets(buf, fsize, file))) {
         off_t pos;

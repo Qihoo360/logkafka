@@ -75,7 +75,7 @@ bool Config::init(const char* filepath)
             break;
     };
 
-    char realdir[PATH_MAX];
+    char realdir[PATH_MAX + 1] = {'\0'};
     if (NULL == realDir(filepath, realdir)) {
         fprintf(stderr, "get realdir of filepath(%s) error!\n", filepath);
         return false;

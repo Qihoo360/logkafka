@@ -460,7 +460,7 @@ void Manager::updateTaskPaths(const string &path_pattern)
 
 string Manager::expandPath(const string &path_pattern)
 {/*{{{*/
-    char outstr[PATH_MAX + 1];
+    char outstr[PATH_MAX + 1] = {'\0'};
 
     time_t t = time(NULL);
     struct tm lt;

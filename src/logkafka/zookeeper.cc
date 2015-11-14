@@ -64,8 +64,8 @@ bool Zookeeper::init(const string &zk_urls, long refresh_interval)
     m_zk_log_fp = fopen("/dev/null", "w");
     zoo_set_log_stream(m_zk_log_fp);
 
-    char buf[256] = {};
-    if (0 == gethostname(buf, sizeof(buf) -1)) {
+    char buf[256] = {'\0'};
+    if (0 == gethostname(buf, sizeof(buf) - 1)) {
         m_hostname = buf;
     } else {
         LERROR << "Fail to get hostname";

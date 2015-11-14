@@ -54,11 +54,13 @@ bool IOHandler::init(FILE *file,
     m_output = output;
     m_receive_func = receiveLines;
 
-    if (NULL == (m_line = reinterpret_cast<char *>(malloc(m_line_max_bytes)))) {
-        LERROR << "Fail to malloc " << m_line_max_bytes << " bytes"
+    if (NULL == (m_line = reinterpret_cast<char *>(malloc(m_line_max_bytes + 1)))) {
+        LERROR << "Fail to malloc " << (m_line_max_bytes + 1) << " bytes"
                << ", " << strerror(errno);
         return false;
     }
+    
+    bzero(m_line, m_line_max_bytes + 1);
 
     if (0 != gettimeofday(&m_last_io_time, NULL)) {
         LERROR << "Fail to get time";
@@ -100,7 +102,7 @@ void IOHandler::onNotify(void *arg)
             char *line = NULL;
             pthread_mutex_lock(&(ioh->m_file_mutex).mutex());
             if (NULL != ioh->m_file) {
-                line = fgets(ioh->m_line, ioh->m_line_max_bytes, ioh->m_file);
+                line = fgets(ioh->m_line, ioh->m_line_max_bytes + 1, ioh->m_file);
             }
             pthread_mutex_unlock(&(ioh->m_file_mutex).mutex());
 
@@ -109,6 +111,11 @@ void IOHandler::onNotify(void *arg)
                 if (ioh->m_line[len-1] == '\n') ioh->m_line[len-1] = '\0';
                 ioh->m_lines.push_back(string(ioh->m_line));
             } else {
+                if (int err = ferror(ioh->m_file)) {
+                    LERROR << "Fail to read from fd " << fileno(ioh->m_file)
+                           << ", ferror: " << err;
+                }
+
                 break;
             }
 
