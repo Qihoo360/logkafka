@@ -116,6 +116,11 @@ void IOHandler::onNotify(void *arg)
                            << ", ferror: " << err;
                 }
 
+                /* fgets of BSD libc will not clear EOF flag bit (glibc will), 
+                 * so we have to call clearerr to clear the flag bit of EOF & ERR
+                 * */
+                clearerr(ioh->m_file);
+
                 break;
             }
 
@@ -133,7 +138,7 @@ void IOHandler::onNotify(void *arg)
              * if one callback cost too much time, the timer
              * will timeout early than expected, when choosing
              * timeout value, you should take this into consideration.
-             */
+             * */
             ioh->updateLastIOTime();
             if ((*ioh->m_receive_func)(ioh->m_filter, ioh->m_output, ioh->m_lines)) {
                 ioh->m_position_entry->updatePos(ioh->getFilePos());

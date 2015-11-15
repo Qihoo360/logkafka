@@ -53,12 +53,12 @@ TEST_F (ConfigTest, TestReadConfString) {
 
     char filename[255] = "/tmp/logkafka_test.confXXXXXX";
     ConfigTest::createFile(filename, 
-            "zk_urls = 127.0.0.1:2181\n" \
-            "pos_path = /tmp/pos.logkafka_test\n" \
-            "line_max_bytes = 1048576\n" \
-            "stat_silent_max_ms = 10000\n" \
-            "zookeeper_upload_interval = 10000\n" \
-            "refresh_interval = 30000\n" \
+            "zookeeper.urls = 127.0.0.1:2181\n" \
+            "pos.path = /tmp/pos.logkafka_test\n" \
+            "line.max.bytes = 1048576\n" \
+            "stat.silent.max.ms = 10000\n" \
+            "zookeeper.upload.interval = 10000\n" \
+            "refresh.interval = 30000\n" \
             );
 
     Config config;

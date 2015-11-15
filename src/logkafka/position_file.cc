@@ -103,12 +103,15 @@ PositionFile* PositionFile::parse(FILE *file)
     bzero(buf, fsize + 1);
 
     char *line = NULL;
-    while (NULL != (line = fgets(buf, fsize, file))) {
+    while (NULL != (line = fgets(buf, fsize + 1, file))) {
         off_t pos;
         ino_t inode;
         PositionEntryKey pek;
 
         string line_str(line);
+
+        if(line_str == "") break;
+
         if (!PositionFile::parseLine(line_str, pek, pos, inode))
             continue;
 
@@ -240,12 +243,15 @@ bool PositionFile::compact(FILE *file)
 
     char *line = NULL;
     map<string, string> existent_entries;
-    while (NULL != (line = fgets(buf, fsize, file))) {
+    while (NULL != (line = fgets(buf, fsize + 1, file))) {
         off_t pos;
         ino_t inode;
         PositionEntryKey pek;
 
         string line_str(line);
+
+        if(line_str == "") break;
+        
         if (!PositionFile::parseLine(line_str, pek, pos, inode)) {
             continue;
         }
