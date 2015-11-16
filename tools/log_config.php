@@ -553,10 +553,10 @@ class AdminUtils
             return $ret;
         }
 
-        $validHostnameRegex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
+        $validHostnameRegex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$"; // conform to RFC 1123
 
         if (!preg_match("/$validHostnameRegex/", $hostname)) {
-            $ret = array('valid'=>false, 'data'=>'invalid hostname!');
+            $ret = array('valid'=>false, 'data'=>"hostname is invalid, does not match regex pattern '$validHostnameRegex', which conforms to RFC 1123!");
             echo $ret['data'], PHP_EOL;
             return $ret;
         }

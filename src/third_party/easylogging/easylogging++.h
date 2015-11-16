@@ -121,7 +121,7 @@
 #   define STRTOK(a,b,c) strtok(a,b)
 #endif
 // std::thread availablity
-#if defined(__GNUC__) && (!_ELPP_NDK) && (_ELPP_CXX0X || _ELPP_CXX11)
+#if defined(__GNUC__) && (!_ELPP_NDK) && (_ELPP_CXX11)
 #   define _ELPP_STD_THREAD_AVAILABLE 1
 #elif defined(_MSC_VER) && (!_ELPP_NDK) && (_ELPP_CXX11)
 #   define _ELPP_STD_THREAD_AVAILABLE 1
@@ -129,7 +129,7 @@
 #   define _ELPP_STD_THREAD_AVAILABLE 1
 #else
 #   define _ELPP_STD_THREAD_AVAILABLE 0
-#endif // defined(__GNUC__) && (_ELPP_CXX0X || _ELPP_CXX11)
+#endif // defined(__GNUC__) && (_ELPP_CXX11)
 // Qt
 #if defined(QT_CORE_LIB)
 #   if (defined(QT_VERSION) && QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
