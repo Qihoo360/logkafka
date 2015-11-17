@@ -33,10 +33,7 @@ using namespace base;
 
 namespace logkafka {
 
-const string Zookeeper::BROKER_IDS_PATH = "/brokers/ids";
 const unsigned long Zookeeper::REFRESH_INTERVAL_MS = 30000UL;
-const string Zookeeper::LOGKAFKA_CONFIG_PATH = "/logkafka/config/";
-const string Zookeeper::LOGKAFKA_CLIENT_PATH = "/logkafka/client/";
 
 Zookeeper::Zookeeper()
 {/*{{{*/
@@ -58,9 +55,13 @@ Zookeeper::~Zookeeper()
     delete m_thread; m_thread = NULL;
 }/*}}}*/
 
-bool Zookeeper::init(const string &zk_urls, long refresh_interval)
+bool Zookeeper::init(const string &zookeeper_urls, 
+        const string &kafka_chroot_path,
+        long refresh_interval)
 {/*{{{*/
-    m_zk_urls = zk_urls;
+    m_zookeeper_urls = zookeeper_urls;
+    m_kafka_chroot_path = kafka_chroot_path;
+
     m_zk_log_fp = fopen("/dev/null", "w");
     zoo_set_log_stream(m_zk_log_fp);
 
@@ -72,8 +73,12 @@ bool Zookeeper::init(const string &zk_urls, long refresh_interval)
         return false;
     }
 
-    m_client_path = LOGKAFKA_CLIENT_PATH + m_hostname;
-    m_config_path = LOGKAFKA_CONFIG_PATH + m_hostname;
+    m_broker_ids_path = m_kafka_chroot_path + "/brokers/ids";
+    m_logkafka_config_path = m_kafka_chroot_path + "/logkafka/config/";
+    m_logkafka_client_path = m_kafka_chroot_path + "/logkafka/client/";
+
+    m_client_hostname_path = m_logkafka_client_path + m_hostname;
+    m_config_hostname_path = m_logkafka_config_path + m_hostname;
 
     refresh((void *)this);
 
@@ -123,10 +128,10 @@ bool Zookeeper::connect()
     }
 
     LDEBUG << "Try to init zhandle";
-    m_zhandle = zookeeper_init(m_zk_urls.c_str(), 
+    m_zhandle = zookeeper_init(m_zookeeper_urls.c_str(), 
             globalWatcher, 30000, NULL, (void*)this, 0);
     if (NULL == m_zhandle) {
-        LERROR << "Fail to init zhandle, zookeeper urls " << m_zk_urls;
+        LERROR << "Fail to init zhandle, zookeeper urls " << m_zookeeper_urls;
         return false;
     }
 
@@ -206,25 +211,25 @@ bool Zookeeper::refreshWatchers()
     ScopedLock l(m_zhandle_mutex);
 
     /* set config change watcher */
-    if (!setWatcher(m_config_path, configChangeWatcher, (void*)this)) {
+    if (!setWatcher(m_config_hostname_path, configChangeWatcher, (void*)this)) {
         LERROR << "Fail to set config change watcher";
         return false;
     }
 
     /* set broker change watcher */
-    if (!setChildrenWatcher(BROKER_IDS_PATH, brokerChangeWatcher, (void*)this)) {
+    if (!setChildrenWatcher(m_broker_ids_path, brokerChangeWatcher, (void*)this)) {
         LERROR << "Fail to set broker change watcher";
         return false;
     }
 
     /* create EPHEMERAL node for checking whether logkafka is alive */
-    ensurePathExist(m_client_path);    
+    ensurePathExist(m_client_hostname_path);    
     /* if lost connection to zk and reconnect to it, this ephemeral node may still exist */
-    zoo_delete(m_zhandle, m_client_path.c_str(), -1);
-    if (zoo_create(m_zhandle, m_client_path.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 
+    zoo_delete(m_zhandle, m_client_hostname_path.c_str(), -1);
+    if (zoo_create(m_zhandle, m_client_hostname_path.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 
                 ZOO_EPHEMERAL, NULL, 0) != ZOK)
     {
-        LERROR << "Fail to create zookeeper path, " << m_client_path;
+        LERROR << "Fail to create zookeeper path, " << m_client_hostname_path;
         return false;
     }
 
@@ -236,7 +241,7 @@ bool Zookeeper::refreshLogConfig()
     ScopedLock l(m_log_config_mutex);
 
     string log_config;
-    if (!getZnodeData(m_config_path, log_config)) {
+    if (!getZnodeData(m_config_hostname_path, log_config)) {
         LERROR << "Fail to get log config";
         return false;
     }
@@ -555,10 +560,10 @@ bool Zookeeper::getBrokerIds(vector<string>& ids)
 
     struct String_vector brokerids;
 
-    int ret = zoo_get_children(m_zhandle, BROKER_IDS_PATH.c_str(), 0, &brokerids);
+    int ret = zoo_get_children(m_zhandle, m_broker_ids_path.c_str(), 0, &brokerids);
     if (ret != ZOK) {
         LERROR << "Get children error"
-               << ", path: " << BROKER_IDS_PATH
+               << ", path: " << m_broker_ids_path
                << ", error: " << errno2String(ret);
 
         return false;
@@ -576,7 +581,7 @@ bool Zookeeper::getBrokerIds(vector<string>& ids)
 bool Zookeeper::getBrokerIpAndPort(const string& brokerid, 
         string& host, string& port)
 {/*{{{*/
-    string brokerid_info_path = BROKER_IDS_PATH + "/" + brokerid;
+    string brokerid_info_path = m_broker_ids_path + "/" + brokerid;
     string brokerinfo;
     if (!getZnodeData(brokerid_info_path, brokerinfo)) {
         LERROR << "Fail to get broker info";
@@ -627,7 +632,7 @@ bool Zookeeper::setLogState( const char *buf, int buflen,
     }
 
     int ret = ZOK;
-    const char *client_path = m_client_path.c_str();
+    const char *client_path = m_client_hostname_path.c_str();
     char *path = strndup(client_path, strlen(client_path));
     if (NULL == path) {
         LERROR << "Fail to strndup path " << client_path;

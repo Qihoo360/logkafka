@@ -38,7 +38,7 @@ protected:
             lk_cfg->init("");
             lk_cfg->pos_path = "/tmp/pos.logkafka";
             unlink(lk_cfg->pos_path.c_str());
-            lk_cfg->zk_urls = "127.0.0.1:2181";
+            lk_cfg->zookeeper_connect = "127.0.0.1:2181";
             lk_cfg->line_max_bytes = 1048576;
 
             Option opt;

@@ -38,7 +38,7 @@ Config::Config()
 {/*{{{*/
     cfg_opt_t opts[] =
     {
-        CFG_STR("zookeeper.urls", DEFAULT_ZK_URLS, CFGF_NONE),
+        CFG_STR("zookeeper.connect", DEFAULT_ZOOKEEPER_CONNECT, CFGF_NONE),
         CFG_STR("pos.path", DEFAULT_POS_PATH, CFGF_NONE),
         CFG_INT("line.max.bytes", DEFAULT_LINE_MAX_BYTES, CFGF_NONE),
         CFG_INT("stat.silent.max.ms", DEFAULT_STAT_SILENT_MAX_MS, CFGF_NONE),
@@ -84,8 +84,8 @@ bool Config::init(const char* filepath)
         
     LINFO << "get logkafka configs: ";
 
-    zk_urls = cfg_getstr(m_cfg, "zookeeper.urls"); 
-    PRINT_VAR(zk_urls);
+    zookeeper_connect = cfg_getstr(m_cfg, "zookeeper.connect"); 
+    PRINT_VAR(zookeeper_connect);
     pos_path = cfg_getstr(m_cfg, "pos.path"); 
     PRINT_VAR(pos_path);
     line_max_bytes = cfg_getint(m_cfg, "line.max.bytes"); 
@@ -102,6 +102,14 @@ bool Config::init(const char* filepath)
     PRINT_VAR(message_send_max_retries);
     queue_buffering_max_messages = cfg_getint(m_cfg, "queue.buffering.max.messages"); 
     PRINT_VAR(queue_buffering_max_messages);
+
+    size_t first_slash = zookeeper_connect.find_first_of("/", 0);
+    zookeeper_urls = zookeeper_connect.substr(0, first_slash);
+    if (first_slash != string::npos) {
+        kafka_chroot_path = zookeeper_connect.substr(first_slash);
+    } else {
+        kafka_chroot_path = "";
+    }
 
     if (!isAbsPath(pos_path.c_str())) {
         pos_path = realdir_s + '/' + pos_path;

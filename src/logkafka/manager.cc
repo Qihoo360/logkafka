@@ -94,8 +94,10 @@ bool Manager::initZookeeper()
     assert (NULL == m_zookeeper);
     m_zookeeper = new Zookeeper();
 
-    if (!m_zookeeper->init(m_config->zk_urls)) {
-        LERROR << "Fail to init zookeeper, zk urls " << m_config->zk_urls;
+    if (!m_zookeeper->init(m_config->zookeeper_urls, m_config->kafka_chroot_path)) {
+        LERROR << "Fail to init zookeeper" 
+               << ", zookeeper urls " << m_config->zookeeper_urls
+               << ", kafka chroot path " << m_config->kafka_chroot_path;
         delete m_zookeeper; m_zookeeper = NULL;
         return false;
     }

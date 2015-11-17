@@ -53,7 +53,7 @@ TEST_F (ConfigTest, TestReadConfString) {
 
     char filename[255] = "/tmp/logkafka_test.confXXXXXX";
     ConfigTest::createFile(filename, 
-            "zookeeper.urls = 127.0.0.1:2181\n" \
+            "zookeeper.connect = 127.0.0.1:2181\n" \
             "pos.path = /tmp/pos.logkafka_test\n" \
             "line.max.bytes = 1048576\n" \
             "stat.silent.max.ms = 10000\n" \
@@ -65,5 +65,5 @@ TEST_F (ConfigTest, TestReadConfString) {
     config.init(filename);
     unlink(filename);
 
-    EXPECT_STREQ("127.0.0.1:2181", config.zk_urls.c_str());
+    EXPECT_STREQ("127.0.0.1:2181", config.zookeeper_connect.c_str());
 }

@@ -47,7 +47,8 @@ class Zookeeper
         Zookeeper();
         ~Zookeeper();
 
-        bool init(const string &zk_urls, 
+        bool init(const string &zookeeper_urls, 
+                const string &kafka_chroot_path,
                 long refresh_interval = REFRESH_INTERVAL_MS);
 
         string getBrokerUrls();
@@ -93,12 +94,16 @@ class Zookeeper
         static void exitAsyncCb(uv_async_t* handle);
 
     private:
-        string m_zk_urls;
+        string m_zookeeper_urls;
+        string m_kafka_chroot_path;
         string m_hostname;
         string m_log_config;
         string m_broker_urls;
-        string m_config_path;
-        string m_client_path;
+        string m_config_hostname_path;
+        string m_client_hostname_path;
+        string m_broker_ids_path;
+        string m_logkafka_config_path;
+        string m_logkafka_client_path;
 
         zhandle_t *m_zhandle;
         FILE* m_zk_log_fp;
@@ -111,9 +116,6 @@ class Zookeeper
         Mutex m_log_config_mutex;
         Mutex m_broker_urls_mutex;
 
-        static const string BROKER_IDS_PATH;
-        static const string LOGKAFKA_CONFIG_PATH;
-        static const string LOGKAFKA_CLIENT_PATH;
         static const unsigned long REFRESH_INTERVAL_MS;
 };
 

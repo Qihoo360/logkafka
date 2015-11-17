@@ -51,7 +51,9 @@ class Config {
         static void print(char *name, const T& value);
 
     public:
-        string zk_urls;
+        string zookeeper_connect;
+        string zookeeper_urls;
+        string kafka_chroot_path;
         string gdbm_path;
         string pos_path;
         unsigned long line_max_bytes;
