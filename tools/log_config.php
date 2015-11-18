@@ -1,9 +1,11 @@
 <?php
-require(dirname(__FILE__)."/getopt-php/Getopt.php");
-require(dirname(__FILE__)."/getopt-php/Option.php");
-require(dirname(__FILE__)."/Exception.php");
+require_once(dirname(__FILE__)."/getopt-php/Getopt.php");
+require_once(dirname(__FILE__)."/getopt-php/Option.php");
+require_once(dirname(__FILE__)."/base/Exception.php");
+require_once(dirname(__FILE__)."/base/Monitor.php");
 
 class LogConfException extends CustomException {}
+class MonitorException extends CustomException {}
 
 main();
 
@@ -16,9 +18,11 @@ function main()
     $helpOpt = new Option(null, 'help');
     $helpOpt -> setDescription('Print usage information.');
 
-    $zookeeperOpt = new Option(null, 'zookeeper', Getopt::REQUIRED_ARGUMENT);
-    $zookeeperOpt -> setDescription('REQUIRED: The connection string for the zookeeper connection in the form host:port.'.
-                                    'Multiple URLS can be given to allow fail-over.');
+    $zookeeper_connectOpt = new Option(null, 'zookeeper_connect', Getopt::REQUIRED_ARGUMENT);
+    $zookeeper_connectOpt -> setDescription('REQUIRED: 
+                          The connection string for the zookeeper connection in the form
+                          "host1:port1,host2:port2,host3:port3/chroot/path", The "/chroot/path" of connection string 
+                          *MUST* be the same as of the kafka server. Multiple URLS can be given to allow fail-over.');
 
     $createOpt = new Option(null, 'create');
     $createOpt -> setDescription('Create a new config.');
@@ -26,6 +30,8 @@ function main()
     $deleteOpt -> setDescription('Delete a config');
     $listOpt = new Option(null, 'list');
     $listOpt -> setDescription('List all available configs.');
+    $monitorOpt = new Option(null, 'monitor');
+    $monitorOpt -> setDescription('Monitor all available configs.');
 
     $hostnameOpt = new Option(null, 'hostname', Getopt::REQUIRED_ARGUMENT);
     $hostnameOpt -> setDescription('The hostname of machine which holds log files');
@@ -113,6 +119,20 @@ function main()
         return AdminUtils::isRegexFilterPatternValid($value);
     });
 
+    $lagging_max_bytesOpt = new Option(null, 'lagging_max_bytes', Getopt::REQUIRED_ARGUMENT);
+    $lagging_max_bytesOpt -> setDescription("log lagging max bytes, the monitor will alarm according to this setting");
+    $lagging_max_bytesOpt -> setDefaultValue('');
+    $lagging_max_bytesOpt -> setValidation(function($value) {
+        return (is_numeric($value) && (int)$value >= 0);
+    });
+
+    $monitorNameOpt = new Option(null, 'monitor_name', Getopt::REQUIRED_ARGUMENT);
+    $monitorNameOpt -> setDescription("the monitor name");
+    $monitorNameOpt -> setDefaultValue('');
+    $monitorNameOpt -> setValidation(function($value) {
+        return AdminUtils::isMonitorNameValid($value);
+    });
+
     $validOpt = new Option(null, 'valid', Getopt::REQUIRED_ARGUMENT);
     $validOpt -> setDescription('Enable now or not');
     $validOpt -> setDefaultValue('true');
@@ -121,11 +141,12 @@ function main()
     });
 
     $parser = new Getopt(array(
-        $zookeeperOpt,
+        $zookeeper_connectOpt,
 
         $createOpt,
         $deleteOpt,
         $listOpt,
+        $monitorOpt,
 
         $hostnameOpt,
         $log_pathOpt, 
@@ -140,20 +161,24 @@ function main()
         $follow_lastOpt,
         $message_timeout_msOpt,
         $regex_filter_patternOpt,
+        $lagging_max_bytesOpt,
+        $monitorNameOpt,
         $validOpt,
     ));
 
     try {
         $parser->parse();
         // Error handling and --help functionality omitted for brevity
-        $listOptVal   = 0;
-        $createOptVal = 0;
-        $deleteOptVal = 0;
+        $createOptVal  = 0;
+        $deleteOptVal  = 0;
+        $listOptVal    = 0;
+        $monitorOptVal = 0;
         
-        if ($parser["list"])   $listOptVal   = 1;
-        if ($parser["create"]) $createOptVal = 1;
-        if ($parser["delete"]) $deleteOptVal = 1;
-    
+        if ($parser["create"])  $createOptVal  = 1;
+        if ($parser["delete"])  $deleteOptVal  = 1;
+        if ($parser["list"])    $listOptVal    = 1;
+        if ($parser["monitor"]) $monitorOptVal = 1;
+
     } catch (UnexpectedValueException $e) {
         echo "Error: ".$e->getMessage()."\n";
         echo $parser->getHelpText();
@@ -161,29 +186,46 @@ function main()
     }
 
     // actions
-    $actions = $listOptVal + $createOptVal + $deleteOptVal; 
+    $actions = $createOptVal + $deleteOptVal + $listOptVal + $monitorOptVal; 
     
     if ($actions != 1)
-        CommandLineUtils::printUsageAndDie($parser, "Command must include exactly one action: --list, --create, or --delete");
+        CommandLineUtils::printUsageAndDie($parser, "Command must include exactly one action: --create, --delete, --list or --monitor");
     
     // check args
     checkArgs($parser);
+
+    // create admin utils
+    $adminUtils = new AdminUtils($parser['zookeeper_connect']);
+    $adminUtils->init();
+    $adminUtils->checkZkState();
+
+    // create monitor
+    if ($monitorOptVal) {
+        try {
+            $monitor = createMonitor($parser['monitor_name']);
+        } catch (Exception $e) {
+            echo "Caught Exception ('{$e->getMessage()}')\n{$e}\n";
+            exit(1);
+        }
+    } else {
+        $monitor = NULL;
+    }
     
-    $zkClient = new Zookeeper($parser['zookeeper']);
-    AdminUtils::checkZkState($zkClient);
+    $adminUtils->setMonitor($monitor);
     
     try {
         if ($parser['create'])
-            createConfig($zkClient, $parser);
+            createConfig($adminUtils, $parser);
         else if ($parser['delete'])
-            deleteConfig($zkClient, $parser);
+            deleteConfig($adminUtils, $parser);
         else if ($parser['list'])
-            listConfig($zkClient, $parser);
+            listConfig($adminUtils, $parser);
+        else if ($parser['monitor'])
+            monitorConfig($adminUtils, $parser);
     } catch (LogConfException $e) {
         echo "Caught LogConfException ('{$e->getMessage()}')\n{$e}\n";
     } catch (Exception $e) {
         echo "Caught Exception ('{$e->getMessage()}')\n{$e}\n";
-
     }
 }
 
@@ -193,15 +235,18 @@ function main()
 function checkArgs($parser)
 {/*{{{*/
     // check required args
-    CommandLineUtils::checkRequiredArgs($parser, array('zookeeper'));
-    if ($parser['list'] === NULL )
+    CommandLineUtils::checkRequiredArgs($parser, array('zookeeper_connect'));
+    if ($parser['create'] !== NULL || $parser['delete'] !== NULL)
         CommandLineUtils::checkRequiredArgs($parser, array('hostname'));
+
+    if ($parser['monitor'] !== NULL)
+        CommandLineUtils::checkRequiredArgs($parser, array('monitor_name'));
 
     // check invalid args
     // FIXME
 }/*}}}*/
 
-function createConfig($zkClient, $parser)
+function createConfig($adminUtils, $parser)
 {/*{{{*/
     $required = array(
         "hostname",
@@ -213,10 +258,10 @@ function createConfig($zkClient, $parser)
 
     $configs = getConfig($parser, AdminUtils::$LOG_COLLECTION_CONFIG_ITEMS);
 
-    AdminUtils::createConfig($zkClient, $configs);
+    $adminUtils->createConfig($configs);
 }/*}}}*/
 
-function deleteConfig($zkClient, $parser)
+function deleteConfig($adminUtils, $parser)
 {/*{{{*/
     $required = array(
         "hostname",
@@ -230,13 +275,19 @@ function deleteConfig($zkClient, $parser)
 
     $configs = getConfig($parser, AdminUtils::$LOG_COLLECTION_CONFIG_ITEMS);
 
-    AdminUtils::deleteConfig($zkClient, $configs);
+    $adminUtils->deleteConfig($configs);
 }/*}}}*/
 
-function listConfig($zkClient, $parser)
+function listConfig($adminUtils, $parser)
 {/*{{{*/
     $configs = getConfig($parser, AdminUtils::$LOG_COLLECTION_CONFIG_ITEMS);
-    AdminUtils::listConfig($zkClient, $configs);
+    $adminUtils->listConfig($configs);
+}/*}}}*/
+
+function monitorConfig($adminUtils, $parser)
+{/*{{{*/
+    $configs = getConfig($parser, AdminUtils::$LOG_COLLECTION_CONFIG_ITEMS);
+    $adminUtils->monitorConfig($configs);
 }/*}}}*/
 
 function getConfig($parser, $items)
@@ -256,6 +307,17 @@ function getConfig($parser, $items)
 
     return $configs;
 }/*}}}*/
+
+function createMonitor($monitor_name)
+{
+    $monitor_class_name = "Monitor$monitor_name";
+    $monitor_file_name = "$monitor_class_name.php";
+    require_once(dirname(__FILE__)."/plugin/$monitor_file_name");
+
+    $monitor = new $monitor_class_name();
+
+    return $monitor;
+}
 
 class CommandLineUtils 
 {/*{{{*/
@@ -324,8 +386,13 @@ class CommandLineUtils
 
 class AdminUtils 
 {/*{{{*/
-    const LOG_COLLECT_CONFIG_PATH = "/logkafka/config";
-    const LOG_COLLECT_CLIENT_PATH = "/logkafka/client";
+    private $zkClient_;
+    private $zookeeper_connect_;
+    private $zookeeper_urls_;
+    private $kafka_chroot_path_;
+    private $log_collect_config_path_;
+    private $log_collect_client_path_;
+    private $monitor_;
 
     static $acl = array(
         array('perms' => 0x1f, 'scheme' => 'world','id' => 'anyone')
@@ -342,6 +409,7 @@ class AdminUtils
         'batchsize'   => array('type'=>'integer', 'default'=>'1000'),
         'message_timeout_ms'   => array('type'=>'integer', 'default'=>'0'),
         'regex_filter_pattern'   => array('type'=>'string', 'default'=>''),
+        'lagging_max_bytes'   => array('type'=>'integer', 'default'=>'0'),
         'follow_last' => array('type'=>'bool', 'default'=>'true'),
         'valid'       => array('type'=>'bool', 'default'=>'true'),
         );
@@ -352,16 +420,51 @@ class AdminUtils
         'snappy',
         );
 
-    static function createConfig($zkClient, $configs)
+    function __construct($zookeeper_connect)
+    {
+        $this->zookeeper_connect_ = $zookeeper_connect;
+        list($this->zookeeper_urls_, $this->kafka_chroot_path_) = AdminUtils::splitZookeeperConnect($zookeeper_connect);
+        $this->log_collect_config_path_ = $this->kafka_chroot_path_."/logkafka/config";
+        $this->log_collect_client_path_ = $this->kafka_chroot_path_."/logkafka/client";
+    }
+
+    public function setMonitor($monitor)
+    {
+        $this->monitor_ = $monitor;
+    }
+
+    public static function splitZookeeperConnect($zookeeper_connect)
+    {
+        $first_slash_pos = strpos($zookeeper_connect, '/');
+        if ($first_slash_pos !== false)
+        {
+            $zookeeper_urls = substr($zookeeper_connect, 0, $first_slash_pos);
+            $kafka_chroot_path = substr($zookeeper_connect, $first_slash_pos);
+        }
+        else
+        {
+            $zookeeper_urls = $zookeeper_connect;
+            $kafka_chroot_path = '';
+        }
+
+        return array($zookeeper_urls, $kafka_chroot_path);
+    }
+
+    public function init()
+    {
+        $this->zkClient_ = new Zookeeper($this->zookeeper_urls_);
+    }
+
+    public function createConfig($configs)
     {/*{{{*/
         $hostname = $configs['hostname'];
         unset($configs['hostname']);
         $log_path = $configs['log_path'];
         unset($configs['log_path']);
 
-        $path = self::LOG_COLLECT_CONFIG_PATH.'/'.$hostname;
-        self::createPath($zkClient, $path);
-        $data = $zkClient->get($path);
+        $path = $this->log_collect_config_path_.'/'.$hostname;
+        self::createPath_($path);
+        $data = $this->zkClient_->get($path);
         if ($data === NULL)
         {
             throw new LogConfException("$path doesn't exist!");
@@ -372,17 +475,17 @@ class AdminUtils
         else
             $info->$log_path = $configs;
 
-        if (!$zkClient->set($path, json_encode($info)))
+        if (!$this->zkClient_->set($path, json_encode($info)))
         {
             throw new LogConfException("set $hostname failed!\n");
         }
     }/*}}}*/
 
-    static function deleteConfig($zkClient, $configs)
+    public function deleteConfig($configs)
     {/*{{{*/
         $hostname = $configs['hostname'];
-        $path = self::LOG_COLLECT_CONFIG_PATH.'/'.$hostname;
-        $data = $zkClient->get($path);
+        $path = $this->log_collect_config_path_.'/'.$hostname;
+        $data = $this->zkClient_->get($path);
         if ($data === NULL) {
             throw new LogConfException("$path doesn't exist! \n");
         }
@@ -392,15 +495,78 @@ class AdminUtils
         else
             unset($info->$configs['log_path']);
 
-        if (!$zkClient->set($path, json_encode($info))) {
+        if (!$this->zkClient_->set($path, json_encode($info))) {
             throw new LogConfException("set $hostname failed! \n");
         }
     }/*}}}*/
 
-    static function listConfig($zkClient, $configs)
+    public function listConfig($configs)
     {/*{{{*/
         if (empty($configs)) {
             throw new LogConfException("configs empty! \n");
+        }
+
+        $tmp_ret = $this->getInfo_($configs);
+
+        if (empty($tmp_ret))
+        {
+            echo("No logkafka configurations.\n");
+            return;
+        }
+
+        foreach ($tmp_ret as $hostname => $hostname_info)
+        {
+            if (empty($hostname_info))
+            {
+                echo("No logkafka configurations for hostname($hostname).\n");
+            }
+
+            foreach ($hostname_info as $path => $path_info)
+            {
+                echo("\n");
+                echo("hostname: $hostname\n");
+                echo("log_path: $path\n");
+
+                print_r($path_info);
+            }
+        }
+    }/*}}}*/
+
+    public function monitorConfig($configs)
+    {/*{{{*/
+        if (empty($configs)) {
+            throw new LogConfException("configs empty! \n");
+        }
+
+        $tmp_ret = $this->getInfo_($configs);
+
+        if (empty($tmp_ret))
+        {
+            echo("No logkafka configurations.\n");
+            return;
+        }
+
+        foreach ($tmp_ret as $hostname => $hostname_info)
+        {
+            if (empty($hostname_info))
+            {
+                echo("No logkafka configurations for hostname($hostname).\n");
+            }
+
+            foreach ($hostname_info as $path => $path_info)
+            {
+                if ($this->monitor_ != NULL)
+                    $this->monitor_->mon($this->zookeeper_connect_, $hostname, $path, $path_info);
+            }
+        }
+    }/*}}}*/
+
+    private function getInfo_($configs)
+    {/*{{{*/
+        $ret = array();
+
+        if (empty($configs)) {
+            return $ret;
         }
 
         if (array_key_exists('hostname', $configs) && !empty($configs['hostname']))
@@ -408,14 +574,16 @@ class AdminUtils
             // get logkafka/conf/$hostname znode value
             $hostname = $configs['hostname'];
 
-            $tmp_ret = AdminUtils::getLogCollectionConf($zkClient, $hostname);
+            $ret[$hostname] = array();
+
+            $tmp_ret = $this->getLogCollectionConf_($hostname);
             if ($tmp_ret['errno'] == 0) {
                 $lk_host_confs = $tmp_ret['data'];
             } else {
                 echo $tmp_ret['errmsg'];
             }
                 
-            $tmp_ret = AdminUtils::getLogCollectionState($zkClient, $hostname);
+            $tmp_ret = $this->getLogCollectionState_($hostname);
             if ($tmp_ret['errno'] == 0) {
                 $lk_host_stats = $tmp_ret['data'];
             } else {
@@ -423,23 +591,25 @@ class AdminUtils
             }
 
             if (empty($lk_host_confs)) {
-                echo("No logkafka configurations for hostname($hostname).\n");
-                return;
+                return $ret;
             }
 
             if (array_key_exists('log_path', $configs) && !empty($configs['log_path']) ) {
-                AdminUtils::listConfigByHostAndPath($zkClient, $lk_host_confs, $lk_host_stats, $hostname, $configs['log_path']);
+                $log_path = $configs['log_path'];
+                $ret[$hostname][$log_path] =
+                    $this->getConfigByHostAndPath_($lk_host_confs, $lk_host_stats, $hostname, $log_path);
             } else {
                 $paths = array_keys($lk_host_confs);
                 foreach ($paths as $path) {
-                    AdminUtils::listConfigByHostAndPath($zkClient, $lk_host_confs, $lk_host_stats, $hostname, $path);
+                    $ret[$hostname][$path] =
+                        $this->getConfigByHostAndPath_($lk_host_confs, $lk_host_stats, $hostname, $path);
                 }
             }
         }
         else
         {
             // get logkafka/conf/<all hostname> znode value
-            $tmp_ret = AdminUtils::getLogkafkaHosts($zkClient);
+            $tmp_ret = $this->getLogkafkaHosts_();
             if ($tmp_ret['errno'] == 0) {
                 $hosts = $tmp_ret['data'];
             } else {
@@ -447,20 +617,21 @@ class AdminUtils
             }
 
             if (empty($hosts)) {
-                echo("No logkafka configurations.\n");
-                return;
+                return $ret;
             }
             
             foreach ($hosts as $host)
             {
-                $tmp_ret = AdminUtils::getLogCollectionConf($zkClient, $host);
+                $ret[$host] = array();
+
+                $tmp_ret = $this->getLogCollectionConf_($host);
                 if ($tmp_ret['errno'] == 0) {
                     $lk_host_confs = $tmp_ret['data'];
                 } else {
                     echo $tmp_ret['errmsg'];
                 }
                     
-                $tmp_ret = AdminUtils::getLogCollectionState($zkClient, $host);
+                $tmp_ret = $this->getLogCollectionState_($host);
                 if ($tmp_ret['errno'] == 0) {
                     $lk_host_stats = $tmp_ret['data'];
                 } else {
@@ -468,54 +639,50 @@ class AdminUtils
                 }
 
                 if (empty($lk_host_confs)) {
-                    echo("No logkafka configurations for host($host).\n");
                     continue;
                 }
 
                 if (array_key_exists('log_path', $configs) && !empty($configs['log_path']) ) {
-                    AdminUtils::listConfigByHostAndPath($zkClient, $lk_host_confs, $lk_host_stats, $host, $configs['log_path']);
+                    $log_path = $configs['log_path'];
+                    $ret[$host][$log_path] = 
+                        $this->getConfigByHostAndPath_($lk_host_confs, $lk_host_stats, $host, $log_path);
                 } else {
                      $paths = array_keys($lk_host_confs);
                      foreach ($paths as $path) {
-                         AdminUtils::listConfigByHostAndPath($zkClient, $lk_host_confs, $lk_host_stats, $host, $path);
+                         $ret[$host][$path] = 
+                             $this->getConfigByHostAndPath_($lk_host_confs, $lk_host_stats, $host, $path);
                      }
                 }
             }
         }
+
+        return $ret;
     }/*}}}*/
 
-    static function listConfigByHostAndPath($zkClient, $lk_host_confs, $lk_host_stats, $hostname, $log_path)
+    private function getConfigByHostAndPath_($lk_host_confs, $lk_host_stats, $hostname, $log_path)
     {/*{{{*/
         $ret = array();
         if (empty($lk_host_confs)) $lk_host_confs = array();
         if (empty($lk_host_stats)) $lk_host_stats = array();
+
         if (array_key_exists($log_path, $lk_host_confs))
         {
             $ret['conf'] = $lk_host_confs[$log_path];
             if (array_key_exists($log_path, $lk_host_stats))
                 $ret['stat'] = $lk_host_stats[$log_path];
-
-            echo("\n");
-            echo("hostname: $hostname\n");
-            echo("log_path: $log_path\n");
-
-            print_r($ret);
         }
-        else
-        {
-            echo("\n");
-            echo("No logkafka configurations for hostname($hostname), log_path($log_path).\n");
-        }
+
+        return $ret;
     }/*}}}*/
 
-    static function getLogCollectionState($zkClient, $hostname)
+    private function getLogCollectionState_($hostname)
     {/*{{{*/
         $state = array();
-        $path = self::LOG_COLLECT_CLIENT_PATH.'/'.$hostname;
+        $path = $this->log_collect_client_path_.'/'.$hostname;
         $state = array();
-        if ($zkClient->exists($path))
+        if ($this->zkClient_->exists($path))
         {
-            $data = $zkClient->get($path);
+            $data = $this->zkClient_->get($path);
             if ($data !== NULL)
             {
                 $state = json_decode($data, true);
@@ -525,7 +692,7 @@ class AdminUtils
         return array('errno' => 0, 'errmsg' => "", 'data' => $state);
     }/*}}}*/
 
-    static function createPath($zkClient, $path)
+    private function createPath_($path)
     {/*{{{*/
         $dirs = explode('/', $path);
         $path = '';
@@ -533,9 +700,9 @@ class AdminUtils
         {
             if (empty($dir)) continue;
             $path = "$path/$dir";
-            if ($zkClient->exists($path) === false)
+            if ($this->zkClient_->exists($path) === false)
             {
-                if(NULL == ($zkClient->create($path, '', self::$acl)))
+                if(NULL == ($this->zkClient_->create($path, '', self::$acl)))
                     return false;
             }
         }
@@ -636,7 +803,13 @@ class AdminUtils
         return true;
     }/*}}}*/
 
-    static public function checkZkState($zkClient)
+    static public function isMonitorNameValid($monitor_name) 
+    {/*{{{*/
+        // TODO
+        return true;
+    }/*}}}*/
+
+    public function checkZkState()
     {/*{{{*/
         $ext = new ReflectionExtension('zookeeper');
         $ver = $ext->getVersion();
@@ -645,16 +818,16 @@ class AdminUtils
              return;
         }
 
-        $state = getState($zkClient);
+        $state = getState($this->zkClient_);
         if (ZOK != $state) {
             throw new LogConfException("zookeeper connection state wrong: $state");
         }
     }/*}}}*/
 
-    static public function getLogCollectionConf($zkClient, $hostname)
+    private function getLogCollectionConf_($hostname)
     {/*{{{*/
-        $path = self::LOG_COLLECT_CONFIG_PATH.'/'.$hostname;
-        $data = $zkClient->get($path);
+        $path = $this->log_collect_config_path_.'/'.$hostname;
+        $data = $this->zkClient_->get($path);
         if ($data === NULL)
         {
             return array('errno' => 1, 'errmsg' => "$path doesn't exist!", 'data' => '');
@@ -666,10 +839,10 @@ class AdminUtils
         return array('errno' => 0, 'errmsg' => "", 'data' => $info);
     }/*}}}*/
 
-    static public function getLogkafkaHosts($zkClient)
+    private function getLogkafkaHosts_()
     {/*{{{*/
-        $path = self::LOG_COLLECT_CONFIG_PATH;
-        $data = $zkClient->getChildren($path);
+        $path = $this->log_collect_config_path_;
+        $data = $this->zkClient_->getChildren($path);
         if ($data === NULL)
         {
             return array('errno' => 1, 'errmsg' => "$path doesn't exist!", 'data' => '');
