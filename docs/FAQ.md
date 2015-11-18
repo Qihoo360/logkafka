@@ -1,28 +1,5 @@
 ## FAQ
 
-#### What kind of log path supported
-
-* log path without timeformat
-  
-  e.g. `/usr/local/logkafka/systest/src/logkafka_test`
-
-  We do **NOT** suggest this kind of log path, with log file getting bigger, it must be rotated, assumed that it's renamed as `/usr/local/logkafka/systest/src/logkafka_test.bak` when it's still opened by logkafka, original log path will be reopened until .bak was totally collected. BUT, If logkafka crash after rotating and before finishing the .bak, the uncollected content of .bak will be lost.
-  
-  For reliability, add another config for `/usr/local/logkafka/systest/src/logkafka_test.bak`.
-    
-* log path with timeformat
-
-  e.g. 
-  
-  ```
-  /usr/local/logkafka/systest/src/logkafka_test.%Y%m%d%H
-  /usr/local/logkafka/systest/src/logkafka_test.%Y-%m-%d-%H
-  /usr/local/logkafka/systest/src/%Y/%m/%d%H/logkafka_test
-  ```
-  
-  The timeformat is allowed to embeded in log path. For certain log path, the log files will be collected chronologically.
-  
-
 #### What situation will cause data loss
 
 1. logkafka crash or killed when librdkafka still holds unsent messages

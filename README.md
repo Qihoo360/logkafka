@@ -11,11 +11,12 @@ See [FAQ](docs/FAQ.md) if you wanna deploy it in production environment.
 ## Features
 
 * log collecting configuration management with zookeeper
-* log path with timeformat (collect files chronologically)
+* [log path with timeformat (collect files chronologically)](docs/Features.md#Log Path Pattern)
 * log file rotating
 * batching messages
 * compression (none, gzip, snappy)
 * [message regex filter](docs/Features.md#Regex Filter)
+* [user-defined monitor](docs/Features.md#Monitor)
 
 ## Differences with other log aggregation and monitoring tools 
 The main differences with **flume**, **fluentd**, **logstash** are
@@ -142,7 +143,7 @@ Note: If you already have kafka and zookeeper installed, you can start from step
      Collect apache access log on host "test.qihoo.net" to kafka brokers with zk urls "127.0.0.1:2181". The topic is "apache_access_log".
    
 	   ```
-	   php tools/log_config.php --create --zookeeper=127.0.0.1:2181 --hostname=test.qihoo.net --log_path=/usr/local/apache2/logs/access_log.%Y%m%d --topic=apache_access_log
+	   php tools/log_config.php --create --zookeeper_connect=127.0.0.1:2181 --hostname=test.qihoo.net --log_path=/usr/local/apache2/logs/access_log.%Y%m%d --topic=apache_access_log
 	   ```
 	   
 	   Note: 
@@ -151,13 +152,13 @@ Note: If you already have kafka and zookeeper installed, you can start from step
    * How to delete configs
    
 	   ```
-	   php tools/log_config.php --delete --zookeeper=127.0.0.1:2181 --hostname=test.qihoo.net --log_path=/usr/local/apache2/logs/access_log.%Y%m%d
+	   php tools/log_config.php --delete --zookeeper_connect=127.0.0.1:2181 --hostname=test.qihoo.net --log_path=/usr/local/apache2/logs/access_log.%Y%m%d
 	   ```
       
    * How to list configs and monitor sending progress
    
 	   ```
-	   php tools/log_config.php --list --zookeeper=127.0.0.1:2181
+	   php tools/log_config.php --list --zookeeper_connect=127.0.0.1:2181
 	   ```
 	   
 	   shows 

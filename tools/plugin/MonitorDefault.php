@@ -2,7 +2,7 @@
 require_once(dirname(__FILE__)."/../base/Monitor.php");
 
 /* class name *MUST* be the same with file name prefix */
-class MonitorZheolong extends Monitor
+class MonitorDefault extends Monitor
 {
     /* Space for user-defined arbitrary data */
     private $data_ = array(

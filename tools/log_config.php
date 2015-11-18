@@ -133,6 +133,20 @@ function main()
         return AdminUtils::isMonitorNameValid($value);
     });
 
+    $monitor_interval_msOpt = new Option(null, 'monitor_interval_ms', Getopt::REQUIRED_ARGUMENT);
+    $monitor_interval_msOpt -> setDescription("the monitor checking interval");
+    $monitor_interval_msOpt -> setDefaultValue('');
+    $monitor_interval_msOpt -> setValidation(function($value) {
+        return (is_numeric($value) && (int)$value >= 1000);
+    });
+
+    $monitor_max_countOpt = new Option(null, 'monitor_max_count', Getopt::REQUIRED_ARGUMENT);
+    $monitor_max_countOpt -> setDescription("the monitor checking max count");
+    $monitor_max_countOpt -> setDefaultValue('');
+    $monitor_max_countOpt -> setValidation(function($value) {
+        return (is_numeric($value) && (int)$value >= 1);
+    });
+
     $validOpt = new Option(null, 'valid', Getopt::REQUIRED_ARGUMENT);
     $validOpt -> setDescription('Enable now or not');
     $validOpt -> setDefaultValue('true');
@@ -162,7 +176,11 @@ function main()
         $message_timeout_msOpt,
         $regex_filter_patternOpt,
         $lagging_max_bytesOpt,
+
         $monitorNameOpt,
+        $monitor_interval_msOpt,
+        $monitor_max_countOpt,
+
         $validOpt,
     ));
 
@@ -287,7 +305,23 @@ function listConfig($adminUtils, $parser)
 function monitorConfig($adminUtils, $parser)
 {/*{{{*/
     $configs = getConfig($parser, AdminUtils::$LOG_COLLECTION_CONFIG_ITEMS);
-    $adminUtils->monitorConfig($configs);
+    $count = 0;
+
+    $monitor_configs = getConfig($parser, AdminUtils::$MONITOR_CONFIG_ITEMS);
+
+    $interval_ms = $monitor_configs['monitor_interval_ms'];
+    $interval_s = $interval_ms/1000;
+    $max_count = $monitor_configs['monitor_max_count'];
+    while (true)
+    {
+        $adminUtils->monitorConfig($configs);
+        if (++$count >= $max_count)
+        {
+            echo "monitor checking $count times\n";
+            return;
+        }
+        sleep($interval_s);
+    }
 }/*}}}*/
 
 function getConfig($parser, $items)
@@ -412,6 +446,11 @@ class AdminUtils
         'lagging_max_bytes'   => array('type'=>'integer', 'default'=>'0'),
         'follow_last' => array('type'=>'bool', 'default'=>'true'),
         'valid'       => array('type'=>'bool', 'default'=>'true'),
+        );
+
+    static $MONITOR_CONFIG_ITEMS = array(
+        'monitor_interval_ms'   => array('type'=>'integer', 'default'=>'3000'),
+        'monitor_max_count' => array('type'=>'integer', 'default'=>'3'),
         );
 
     static $COMPRESSION_CODECS = array(
