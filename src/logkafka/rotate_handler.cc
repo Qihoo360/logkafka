@@ -22,6 +22,7 @@
 #include "logkafka/rotate_handler.h"
 
 #include "base/common.h"
+#include "base/tools.h"
 
 namespace logkafka {
 
@@ -67,21 +68,33 @@ void RotateHandler::onNotify(void *arg)
     }
 
     if (rh->m_inode != inode || fsize < rh->m_fsize) {
-        LDEBUG << "Try to open file " << rh->m_path;
+        LINFO << "Opening file " << rh->m_path;
+
         file = fopen(rh->m_path.c_str(), "r");
         if (file == NULL) {
-            LERROR << "Fail to open file " << rh->m_path;
+            LWARNING << "Fail to open file " << rh->m_path << ", " << strerror(errno);
             return;
         }
 
-        (*rh->m_rotate_func)(rh->m_rotate_func_arg, file);
-        file = NULL;
+        LDEBUG << "Finish opening file"
+               << ", fd: " << fileno(file)
+               << ", inode: " << getInode(file);
+
+        /* we can update inode and fsize of rotate handler only when rotating done */
+        if (!(*rh->m_rotate_func)(rh->m_rotate_func_arg, file)) {
+            LWARNING << "Fail to rotate " << rh->m_path;
+        } else {
+            //LINFO << "Finish rotating " << rh->m_path; //FIXME: this log will cause core dump
+            rh->m_inode = inode;
+            rh->m_fsize = fsize;
+            file = NULL;
+        }
     }
 
-    rh->m_inode = inode;
-    rh->m_fsize = fsize;
-
     if (NULL != file) {
+        LDEBUG << "Closing file"
+               << ", fd: " << fileno(file)
+               << ", inode: " << getInode(file);
         fclose(file); file = NULL;
     }
 }

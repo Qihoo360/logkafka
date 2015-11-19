@@ -64,6 +64,8 @@ extern set<std::string> diff_set(set<std::string> s1, set<std::string> s2);
 extern set<std::string> intersect_set(set<std::string> s1, set<std::string> s2);
 
 extern ino_t getInode(const char *path);
+extern ino_t getInode(int fd);
+extern ino_t getInode(FILE *fp);
 extern off_t getFsize(const char *path);
 extern off_t getFsize(int fd);
 extern off_t getFsize(FILE *fp);

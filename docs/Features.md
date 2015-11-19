@@ -83,7 +83,7 @@ php tools/log_config.php --monitor --monitor_name=<YourMonitorName> \
 
 |   Option            |     Default      |    Description  |
 |---------------------|------------------|-----------------|
-| monitor_max_count   |        3         |  Specify checking max count. |
+| monitor_max_count   |        0         |  Specify checking max count, if setting it to 0, the monitor will keep checking |
 | monitor_interval_ms |       3000       |  Specify checking interval.  |
 
 Examples:

@@ -104,7 +104,7 @@ class Manager
         void closeWatcher(TailWatcher *tw, 
                 bool close_io = true, 
                 bool remove_pos_entry = false);
-        static void updateWatcherRotate(Manager *manager, 
+        static bool updateWatcherRotate(Manager *manager,
                 string path_pattern,
                 string path,
                 PositionEntry *position_entry);

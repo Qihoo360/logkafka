@@ -59,6 +59,7 @@ class IOHandler
         void close();
         static void onNotify(void *arg);
         bool getLastIOTime(struct timeval &tv);
+        long getFileInode();
         long getFileSize();
         long getFilePos();
 

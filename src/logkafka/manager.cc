@@ -701,7 +701,7 @@ void Manager::updateWatchers(set<string> path_patterns)
     }
 }/*}}}*/
 
-void Manager::updateWatcherRotate(Manager *manager, 
+bool Manager::updateWatcherRotate(Manager *manager,
         string path_pattern,
         string path,
         PositionEntry *position_entry)
@@ -717,17 +717,32 @@ void Manager::updateWatcherRotate(Manager *manager,
     if (iter != manager->m_tails.end())
         tw = iter->second;
 
-    if (!tw->isActive()) {
-        manager->closeWatcher(tw, true, false); 
-        position_entry->updatePos(0); // read from head
-        manager->m_tails[path_pattern] = manager->setupWatcher(
-                tw->m_conf,
-                path_pattern, 
-                path, 
-                position_entry, 
-                manager->m_tasks[path_pattern]->getEnabled());
-        delete tw;
+    if (tw->isActive()) {
+        LINFO << "Original file is still active, give up rotating this time";
+        return false;
     }
+
+    manager->closeWatcher(tw, true, false); 
+    position_entry->updatePos(0); // read from head
+
+    TailWatcher *tw_new = manager->setupWatcher(
+            tw->m_conf,
+            path_pattern, 
+            path, 
+            position_entry, 
+            manager->m_tasks[path_pattern]->getEnabled());
+    if (NULL == tw_new) {
+        LERROR << "Fail to set up new tail watcher, "
+              << ", path_pattern: " << path_pattern
+              << ", path " << path;
+        return false;
+    } else {
+        manager->m_tails[path_pattern] = tw_new;
+        delete tw;
+        LINFO << "Finish setting up new tail watcher";
+    }
+
+    return true;
 }/*}}}*/
 
 bool Manager::receiveLines(void *filter, void *output, const vector<string> &lines)

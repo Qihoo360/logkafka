@@ -49,7 +49,7 @@ namespace logkafka {
 
 class Manager;
 
-typedef void (*UpdateFunc)(Manager *, string, string, PositionEntry *);
+typedef bool (*UpdateFunc)(Manager *, string, string, PositionEntry *);
 
 class TailWatcher
 {
@@ -72,7 +72,7 @@ class TailWatcher
                 Output *output);
 
         static void onNotify(void *arg);
-        static void onRotate(void *arg, FILE *file);
+        static bool onRotate(void *arg, FILE *file);
         static PositionEntry * swapState(PositionEntry **pep, IOHandler *io_handler);
 
         void start();
@@ -91,9 +91,11 @@ class TailWatcher
             ScopedLock l(m_io_handler_mutex);
 
             string realpath = m_path;
+            long inode = INO_NONE;
             long filepos = -1;
             long filesize = 0;
             if (NULL != m_io_handler) {
+                inode = m_io_handler->getFileInode();
                 filepos = m_io_handler->getFilePos();
                 filesize = m_io_handler->getFileSize();
             }
@@ -103,6 +105,8 @@ class TailWatcher
 
             writer.String("realpath");
             writer.String(realpath.c_str(), (rapidjson::SizeType)realpath.length()); // Supplying length of string is faster.
+            writer.String("inode");
+            writer.String(int2Str(inode).c_str());
             writer.String("filepos");
             writer.String(int2Str(filepos).c_str());
             writer.String("filesize");

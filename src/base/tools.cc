@@ -175,6 +175,26 @@ ino_t getInode(const char *path)
     return inode;
 };/*}}}*/
 
+ino_t getInode(int fd)
+{/*{{{*/
+    struct stat buf;
+    off_t fsize;
+    ino_t inode;
+    if (0 == fstat(fd, &buf)) {
+        inode = buf.st_ino;
+    } else {
+        inode = INO_NONE;
+    }
+
+    return inode;
+}/*}}}*/
+
+ino_t getInode(FILE *fp)
+{/*{{{*/
+    if (NULL == fp) return INO_NONE;
+    return getInode(fileno(fp));
+};/*}}}*/
+
 off_t getFsize(const char *path)
 {/*{{{*/
     struct stat buf;
@@ -198,10 +218,8 @@ off_t getFsize(int fd)
     ino_t inode;
     if (0 == fstat(fd, &buf)) {
         fsize = buf.st_size;
-        inode = buf.st_ino;
     } else {
         fsize = 0;
-        inode = INO_NONE;
     }
 
     return fsize;

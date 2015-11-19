@@ -129,7 +129,7 @@ void TailWatcher::onNotify(void *arg)
         tw->m_io_handler->onNotify((void *)tw->m_io_handler);
 }/*}}}*/
 
-void TailWatcher::onRotate(void *arg, FILE *file)
+bool TailWatcher::onRotate(void *arg, FILE *file)
 {/*{{{*/
     TailWatcher *tw = (TailWatcher *)arg;
     PositionEntry *pe = tw->m_position_entry;
@@ -153,9 +153,11 @@ void TailWatcher::onRotate(void *arg, FILE *file)
                 pos = pe->readPos();
             } else if (inode != 0) {
                 pos = 0;
+                LINFO << "Updating position entry, inode: " << inode << ", pos: " << pos;
                 pe->update(inode, pos);
             } else {
                 pos = tw->m_read_from_head? 0: fsize;
+                LINFO << "Updating position entry, inode: " << inode << ", pos: " << pos;
                 pe->update(inode, pos);
             }
 
@@ -165,12 +167,13 @@ void TailWatcher::onRotate(void *arg, FILE *file)
             bool res = tw->m_io_handler->init(file, pe, max_line_at_once, 
                     line_max_bytes, tw->m_filter, tw->m_output, receiveLines);
             if (!res) {
+                LERROR << "Fail to init io handler, inode: " << inode;
                 delete tw->m_io_handler; tw->m_io_handler = NULL;
-                return;
+                return false;
             }
         }
     } else {
-        if (0 != file) {
+        if (NULL != file) {
             struct stat buf;
             fstat(fileno(file), &buf);
             off_t fsize = buf.st_size;
@@ -184,8 +187,9 @@ void TailWatcher::onRotate(void *arg, FILE *file)
                 bool res = io_handler->init(file, pe, max_line_at_once, 
                         line_max_bytes, tw->m_filter, tw->m_output, receiveLines);
                 if (!res) {
+                    LERROR << "Fail to init io handler, inode: " << inode;
                     delete io_handler;
-                    return;
+                    return false;
                 }
 
                 tw->m_io_handler->close();
@@ -200,8 +204,9 @@ void TailWatcher::onRotate(void *arg, FILE *file)
                 bool res = io_handler->init(file, pe, max_line_at_once, 
                         line_max_bytes, tw->m_filter, tw->m_output, receiveLines);
                 if (!res) {
+                    LERROR << "Fail to init io handler, inode: " << inode;
                     delete io_handler;
-                    return;
+                    return false;
                 }
 
                 delete tw->m_io_handler;
@@ -209,10 +214,17 @@ void TailWatcher::onRotate(void *arg, FILE *file)
             } else {
                 //(*updateWatcher)(tw->m_manager, tw->m_path_pattern, tw->m_path, 
                 //        swapState(&tw->m_position_entry, tw->m_io_handler));
-                (*updateWatcher)(tw->m_manager, tw->m_path_pattern, tw->m_path, tw->m_position_entry);
+                if (!(*updateWatcher)(tw->m_manager, tw->m_path_pattern, tw->m_path, tw->m_position_entry)) {
+                    LWARNING << "Fail to rotate " << tw->m_path;
+                    return false;
+                } else {
+                    fclose(file); 
+                }
             }
         }
     }
+
+    return true;
 }/*}}}*/
 
 PositionEntry *TailWatcher::swapState(PositionEntry **pep, IOHandler *io_handler)

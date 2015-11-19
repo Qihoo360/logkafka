@@ -41,7 +41,7 @@ using namespace base;
 
 namespace logkafka {
 
-typedef void (*RotateFunc)(void *, FILE *);
+typedef bool (*RotateFunc)(void *, FILE *);
 
 class RotateHandler
 {

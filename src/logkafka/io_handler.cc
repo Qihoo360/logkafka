@@ -73,6 +73,12 @@ bool IOHandler::init(FILE *file,
 void IOHandler::onNotify(void *arg)
 {/*{{{*/
     IOHandler *ioh = reinterpret_cast<IOHandler *>(arg);
+
+    if (NULL == ioh) {
+        LERROR << "io handler is NULL";
+        return;
+    }
+
     ScopedLock l(ioh->m_io_handler_mutex);
 
     if (NULL == ioh->m_receive_func)
@@ -175,10 +181,23 @@ void IOHandler::close()
 {/*{{{*/
     if (0 == pthread_mutex_lock(&m_file_mutex.mutex())) {
         if (NULL != m_file) {
+            LINFO << "Closing file"
+                   << ", fd: " << fileno(m_file)
+                   << ", inode: " << getInode(m_file);
             fclose(m_file); m_file = NULL;
         }
         pthread_mutex_unlock(&m_file_mutex.mutex());
     }
+}/*}}}*/
+
+long IOHandler::getFileInode()
+{/*{{{*/
+    long inode = INO_NONE;
+    if (0 == pthread_mutex_lock(&m_file_mutex.mutex())) {
+        inode = (NULL != m_file)? getInode(m_file): inode;
+        pthread_mutex_unlock(&m_file_mutex.mutex());
+    }
+    return inode;
 }/*}}}*/
 
 long IOHandler::getFileSize()
