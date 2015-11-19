@@ -141,10 +141,10 @@ function main()
     });
 
     $monitor_max_countOpt = new Option(null, 'monitor_max_count', Getopt::REQUIRED_ARGUMENT);
-    $monitor_max_countOpt -> setDescription("the monitor checking max count");
+    $monitor_max_countOpt -> setDescription("the monitor checking max count, if setting it to 0, the monitor will keep checking");
     $monitor_max_countOpt -> setDefaultValue('');
     $monitor_max_countOpt -> setValidation(function($value) {
-        return (is_numeric($value) && (int)$value >= 1);
+        return (is_numeric($value) && (int)$value >= 0);
     });
 
     $validOpt = new Option(null, 'valid', Getopt::REQUIRED_ARGUMENT);
@@ -315,10 +315,12 @@ function monitorConfig($adminUtils, $parser)
     while (true)
     {
         $adminUtils->monitorConfig($configs);
-        if (++$count >= $max_count)
-        {
-            echo "monitor checking $count times\n";
-            return;
+        if ($max_count > 0) {
+            if (++$count >= $max_count)
+            {
+                echo "monitor checking $count times\n";
+                return;
+            }
         }
         sleep($interval_s);
     }
@@ -450,7 +452,7 @@ class AdminUtils
 
     static $MONITOR_CONFIG_ITEMS = array(
         'monitor_interval_ms'   => array('type'=>'integer', 'default'=>'3000'),
-        'monitor_max_count' => array('type'=>'integer', 'default'=>'3'),
+        'monitor_max_count' => array('type'=>'integer', 'default'=>'0'),
         );
 
     static $COMPRESSION_CODECS = array(
