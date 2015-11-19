@@ -224,13 +224,13 @@ bool Zookeeper::refreshWatchers()
 
     /* create EPHEMERAL node for checking whether logkafka is alive */
     ensurePathExist(m_client_hostname_path);    
-    /* if lost connection to zk and reconnect to it, this ephemeral node may still exist */
-    zoo_delete(m_zhandle, m_client_hostname_path.c_str(), -1);
-    if (zoo_create(m_zhandle, m_client_hostname_path.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 
-                ZOO_EPHEMERAL, NULL, 0) != ZOK)
-    {
-        LERROR << "Fail to create zookeeper path, " << m_client_hostname_path;
-        return false;
+    if (ZOK != zoo_exists(m_zhandle, m_client_hostname_path.c_str(), 0, NULL)) {
+        if (zoo_create(m_zhandle, m_client_hostname_path.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 
+                    ZOO_EPHEMERAL, NULL, 0) != ZOK)
+        {
+            LERROR << "Fail to create zookeeper path, " << m_client_hostname_path;
+            return false;
+        }
     }
 
     return true;
