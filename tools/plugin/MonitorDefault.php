@@ -49,9 +49,24 @@ class MonitorDefault extends Monitor
                 $filesize = (int)$stat['filesize'];
                 $filepos = (int)$stat['filepos'];
                 $lagging_bytes = $filesize - $filepos; 
-                if ($lagging_bytes > 0)
+                if ($lagging_bytes > $lagging_max_bytes)
                 {
                     $message = "[Logkafka][$zookeeper_connect][$hostname][$path_pattern][Lagging $lagging_bytes bytes, please check logkafka error logs]";
+                    $this->alarm_($this->data_, $message);
+                    return;
+                }
+            }
+        }
+
+        if (array_key_exists('rotate_lagging_max_sec', $conf)) {
+            $rotate_lagging_max_sec = (int)$conf['rotate_lagging_max_sec'];
+            if ($rotate_lagging_max_sec != 0)
+            {
+                $last_rotate_time_sec = (int)$stat['last_rotate_time_sec'];
+                $lagging_sec = time() - $last_rotate_time_sec; 
+                if ($lagging_sec > $rotate_lagging_max_sec)
+                {
+                    $message = "[Logkafka][$zookeeper_connect][$hostname][$path_pattern][Rotate lagging $lagging_sec seconds, please check logkafka error logs]";
                     $this->alarm_($this->data_, $message);
                     return;
                 }

@@ -126,6 +126,13 @@ function main()
         return (is_numeric($value) && (int)$value >= 0);
     });
 
+    $rotate_lagging_max_secOpt = new Option(null, 'rotate_lagging_max_sec', Getopt::REQUIRED_ARGUMENT);
+    $rotate_lagging_max_secOpt -> setDescription("log rotatiion lagging max seconds, the monitor will alarm according to this setting");
+    $rotate_lagging_max_secOpt -> setDefaultValue('');
+    $rotate_lagging_max_secOpt -> setValidation(function($value) {
+        return (is_numeric($value) && (int)$value >= 0);
+    });
+
     $monitorNameOpt = new Option(null, 'monitor_name', Getopt::REQUIRED_ARGUMENT);
     $monitorNameOpt -> setDescription("the monitor name");
     $monitorNameOpt -> setDefaultValue('');
@@ -176,6 +183,7 @@ function main()
         $message_timeout_msOpt,
         $regex_filter_patternOpt,
         $lagging_max_bytesOpt,
+        $rotate_lagging_max_secOpt,
 
         $monitorNameOpt,
         $monitor_interval_msOpt,
@@ -446,6 +454,7 @@ class AdminUtils
         'message_timeout_ms'   => array('type'=>'integer', 'default'=>'0'),
         'regex_filter_pattern'   => array('type'=>'string', 'default'=>''),
         'lagging_max_bytes'   => array('type'=>'integer', 'default'=>'0'),
+        'rotate_lagging_max_sec'   => array('type'=>'integer', 'default'=>'0'),
         'follow_last' => array('type'=>'bool', 'default'=>'true'),
         'valid'       => array('type'=>'bool', 'default'=>'true'),
         );
