@@ -88,7 +88,6 @@ class Zookeeper
 
         static const char* state2String(int state);
         static const char* event2String(int event);
-        static const char* errno2String(int errnum);
 
         static void threadFunc(void *arg);
         static void exitAsyncCb(uv_async_t* handle);
@@ -104,8 +103,10 @@ class Zookeeper
         string m_broker_ids_path;
         string m_logkafka_config_path;
         string m_logkafka_client_path;
+        int m_session_timeout_ms;
 
         zhandle_t *m_zhandle;
+        clientid_t *m_clientid;
         FILE* m_zk_log_fp;
         uv_thread_t *m_thread;
         uv_loop_t *m_loop;
@@ -117,6 +118,7 @@ class Zookeeper
         Mutex m_broker_urls_mutex;
 
         static const unsigned long REFRESH_INTERVAL_MS;
+        static const unsigned long SESSION_TIMEOUT_MS;
 };
 
 } // namespace Logkafka
