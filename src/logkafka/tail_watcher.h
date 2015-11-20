@@ -88,17 +88,29 @@ class TailWatcher
         template <typename JsonWriter>
         void Serialize(JsonWriter& writer)
         {/*{{{*/
-            ScopedLock l(m_io_handler_mutex);
-
             string realpath = m_path;
             long inode = INO_NONE;
             long filepos = -1;
             long filesize = 0;
-            if (NULL != m_io_handler) {
-                inode = m_io_handler->getFileInode();
-                filepos = m_io_handler->getFilePos();
-                filesize = m_io_handler->getFileSize();
+            struct timeval last_rotate_time = (struct timeval){0};
+
+            {
+                ScopedLock l(m_io_handler_mutex);
+                if (NULL != m_io_handler) {
+                    inode = m_io_handler->getFileInode();
+                    filepos = m_io_handler->getFilePos();
+                    filesize = m_io_handler->getFileSize();
+                }
             }
+
+            {
+                ScopedLock l(m_rotate_handler_mutex);
+                if (NULL != m_rotate_handler) {
+                    m_rotate_handler->getLastRotateTime(last_rotate_time);
+                }
+            }
+
+            long last_rotate_time_sec = last_rotate_time.tv_sec;
 
             // This base class just write out name-value pairs, without wrapping within an object.
             writer.StartObject();
@@ -111,6 +123,8 @@ class TailWatcher
             writer.String(int2Str(filepos).c_str());
             writer.String("filesize");
             writer.String(int2Str(filesize).c_str());
+            writer.String("last_rotate_time_sec");
+            writer.String(int2Str(last_rotate_time_sec).c_str());
 
             writer.EndObject();
         };/*}}}*/
@@ -141,6 +155,7 @@ class TailWatcher
 
     private:
         Mutex m_io_handler_mutex;
+        Mutex m_rotate_handler_mutex;
 
         static const unsigned long TIMER_WATCHER_DEFAULT_REPEAT;
         static const unsigned long STAT_WATCHER_DEFAULT_INTERVAL;

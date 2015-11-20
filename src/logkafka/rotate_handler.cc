@@ -68,7 +68,7 @@ void RotateHandler::onNotify(void *arg)
     }
 
     if (rh->m_inode != inode || fsize < rh->m_fsize) {
-        LINFO << "Opening file " << rh->m_path;
+        //LINFO << "Opening file " << rh->m_path; //FIXME: this log will cause core dump
 
         file = fopen(rh->m_path.c_str(), "r");
         if (file == NULL) {
@@ -85,6 +85,7 @@ void RotateHandler::onNotify(void *arg)
             LWARNING << "Fail to rotate " << rh->m_path;
         } else {
             //LINFO << "Finish rotating " << rh->m_path; //FIXME: this log will cause core dump
+            rh->updateLastRotateTime();
             rh->m_inode = inode;
             rh->m_fsize = fsize;
             file = NULL;
@@ -99,5 +100,25 @@ void RotateHandler::onNotify(void *arg)
     }
 }
 
+void RotateHandler::updateLastRotateTime()
+{/*{{{*/
+    if (0 == pthread_mutex_trylock(&m_last_rotate_time_mutex.mutex())) {
+        if (0 != gettimeofday(&m_last_rotate_time, NULL)) {
+            LERROR << "Fail to get time";
+        }
+        pthread_mutex_unlock(&m_last_rotate_time_mutex.mutex());
+    }
+}/*}}}*/
+
+bool RotateHandler::getLastRotateTime(struct timeval &tv)
+{/*{{{*/
+    bool res = false;
+    if (0 == pthread_mutex_trylock(&m_last_rotate_time_mutex.mutex())) {
+        tv = m_last_rotate_time;
+        pthread_mutex_unlock(&m_last_rotate_time_mutex.mutex());
+        res = true;
+    }
+    return res;
+}/*}}}*/
 
 } // namespace logkafka

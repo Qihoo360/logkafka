@@ -29,6 +29,7 @@ bool FilterRegex::init(void *arg)
     int errorcode;
 
     if (m_filter_conf.regex_filter_pattern == "") {
+        LINFO << "Regex filter pattern is not set";
         return false;
     }
 

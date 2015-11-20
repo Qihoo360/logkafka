@@ -84,7 +84,7 @@ bool TailWatcher::init(uv_loop_t *loop,
 
     m_filter = new FilterRegex(conf.filter_conf);
     if (!m_filter->init(NULL)) {
-        LERROR << "Fail to init filter";
+        LWARNING << "Fail to init filter";
         delete m_filter; m_filter = NULL;
     }
 
