@@ -32,6 +32,15 @@ The main differences with **flume**, **fluentd**, **logstash** are
   flume, fluentd, logstash all have INPUT type 'tail', they collecting all files simultaneously, without considering chronological order of log files.
   
   logkafka will collect files chronologically.
+  
+## Users of logkafka
+
+* [Qihoo360](http://www.360totalsecurity.com/features/360-total-security-mac/) - Collecting openstack operation logs
+* [ICBC](http://www.icbc.com.cn/ICBC/sy/default.htm) - Collecting ssdb operation log
+* *Let [me](zheolong@126.com) know if you are using logkafka.*
+
+[details...](docs/Users.md)
+
 
 ## Requirements
 
