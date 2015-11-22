@@ -48,6 +48,8 @@ Zookeeper::Zookeeper()
     m_broker_urls = "";
     m_session_timeout_ms = SESSION_TIMEOUT_MS;
     m_clientid = NULL;
+
+    m_registered = false;
 }/*}}}*/
 
 Zookeeper::~Zookeeper()
@@ -75,8 +77,8 @@ bool Zookeeper::init(const string &zookeeper_urls,
     m_logkafka_config_path = m_kafka_chroot_path + "/logkafka/config";
     m_logkafka_client_path = m_kafka_chroot_path + "/logkafka/client";
 
-    m_client_hostname_path = m_logkafka_client_path + "/" + m_logkafka_id;
-    m_config_hostname_path = m_logkafka_config_path + "/" + m_logkafka_id;
+    m_client_logkafka_id_path = m_logkafka_client_path + "/" + m_logkafka_id;
+    m_config_logkafka_id_path = m_logkafka_config_path + "/" + m_logkafka_id;
 
     refresh((void *)this);
 
@@ -218,7 +220,7 @@ bool Zookeeper::refreshWatchers()
     ScopedLock l(m_zhandle_mutex);
 
     /* set config change watcher */
-    if (!setWatcher(m_config_hostname_path, configChangeWatcher, (void*)this)) {
+    if (!setWatcher(m_config_logkafka_id_path, configChangeWatcher, (void*)this)) {
         LERROR << "Fail to set config change watcher";
         return false;
     }
@@ -241,25 +243,42 @@ bool Zookeeper::refreshWatchers()
     char *buf = NULL;
     buf = (char *)malloc(len + 1);
     bzero(buf, len + 1);
-    status = zoo_get(m_zhandle, m_client_hostname_path.c_str(), 0, buf, &len, &stat);
-    if (ZOK == status && 0 == stat.ephemeralOwner) {
-        LINFO << "Deleting persistent zookeeper path, " << m_client_hostname_path;
-        if (ZOK != zoo_delete(m_zhandle, m_client_hostname_path.c_str(), -1)) {
-            LERROR << "Fail to delete persistent zookeeper path, " << m_client_hostname_path;
-            return false;
+    status = zoo_get(m_zhandle, m_client_logkafka_id_path.c_str(), 0, buf, &len, &stat);
+    if (ZOK == status) {
+        if (0 == stat.ephemeralOwner) { // persistent node
+            LINFO << "Deleting persistent zookeeper path, " << m_client_logkafka_id_path;
+            if (ZOK != zoo_delete(m_zhandle, m_client_logkafka_id_path.c_str(), -1)) {
+                LERROR << "Fail to delete persistent zookeeper path, "
+                       << m_client_logkafka_id_path;
+                return false;
+            }
+        } else { // ephemeral node
+            /* if this process have never created client/logkafka_id node, 
+             * it must be created by another process, we must quit */
+            if (!m_registered) {
+                LERROR << "This error may emerge in two situations: \n"
+                       << "    1. Another logkafka process with the same id " 
+                       << m_logkafka_id << " is running.\n"
+                       << "    2. Last running process with the same id just stopped"
+                       << " a moment ago, wait for " << (m_session_timeout_ms/1000) 
+                       << " seconds and retry";
+                exit(EXIT_FAILURE);
+            }
         }
     }
     free(buf);
 
     if (ZOK != status) {
         LDEBUG << "Zookeeper get error, " << zerror(status);
-        LDEBUG << "Creating zookeeper path, " << m_client_hostname_path;
-        if (zoo_create(m_zhandle, m_client_hostname_path.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 
+        LDEBUG << "Creating zookeeper path, " << m_client_logkafka_id_path;
+        if (zoo_create(m_zhandle, m_client_logkafka_id_path.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 
                     ZOO_EPHEMERAL, NULL, 0) != ZOK)
         {
-            LERROR << "Fail to create zookeeper path, " << m_client_hostname_path;
+            LERROR << "Fail to create zookeeper path, " << m_client_logkafka_id_path;
             return false;
         }
+
+        m_registered = true;
     }
 
     return true;
@@ -270,7 +289,7 @@ bool Zookeeper::refreshLogConfig()
     ScopedLock l(m_log_config_mutex);
 
     string log_config;
-    if (!getZnodeData(m_config_hostname_path, log_config)) {
+    if (!getZnodeData(m_config_logkafka_id_path, log_config)) {
         LERROR << "Fail to get log config";
         return false;
     }
@@ -617,7 +636,7 @@ bool Zookeeper::setLogState( const char *buf, int buflen,
     }
 
     int ret = ZOK;
-    const char *client_path = m_client_hostname_path.c_str();
+    const char *client_path = m_client_logkafka_id_path.c_str();
     char *path = strndup(client_path, strlen(client_path));
     if (NULL == path) {
         LERROR << "Fail to strndup path " << client_path;

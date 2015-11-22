@@ -99,12 +99,13 @@ class Zookeeper
         string m_logkafka_id;
         string m_log_config;
         string m_broker_urls;
-        string m_config_hostname_path;
-        string m_client_hostname_path;
+        string m_config_logkafka_id_path;
+        string m_client_logkafka_id_path;
         string m_broker_ids_path;
         string m_logkafka_config_path;
         string m_logkafka_client_path;
         int m_session_timeout_ms;
+        bool m_registered;
 
         zhandle_t *m_zhandle;
         clientid_t *m_clientid;
