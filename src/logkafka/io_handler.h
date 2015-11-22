@@ -84,7 +84,6 @@ class IOHandler
 
         Mutex m_last_io_time_mutex;
         Mutex m_file_mutex;
-        Mutex m_io_handler_mutex;
 };
 
 } // namespace logkafka

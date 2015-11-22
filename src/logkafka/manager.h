@@ -46,6 +46,7 @@ class TailWatcher;
 typedef std::map<std::string, Task* > TaskMap;
 typedef std::map<std::string, TailWatcher*> TailMap;
 typedef std::map<std::string, TaskConf> TaskConfMap;
+typedef std::vector<TailWatcher*> TailVec;
 
 class Manager
 {
@@ -132,6 +133,7 @@ class Manager
         TaskConfMap m_task_confs;
         TaskMap m_tasks;
         TailMap m_tails;
+        TailVec m_tails_deleted;
 
         TimerWatcher *m_refresh_trigger;
 
@@ -139,6 +141,7 @@ class Manager
         PositionFile *m_position_file;
 
         Mutex m_tail_watchers_mutex;
+        Mutex m_tail_watchers_deleted_mutex;
 };
 
 } // namespace logkafka

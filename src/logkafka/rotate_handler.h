@@ -64,7 +64,6 @@ class RotateHandler
     private:
         struct timeval m_last_rotate_time;
         Mutex m_last_rotate_time_mutex;
-        Mutex m_rotate_handler_mutex;
 };
 
 } // namespace logkafka

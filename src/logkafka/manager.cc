@@ -56,15 +56,26 @@ Manager::~Manager()
     delete m_refresh_trigger; m_refresh_trigger = NULL;
     delete m_position_file; m_position_file = NULL;
 
-    ScopedLock l(m_tail_watchers_mutex);
-    for (TailMap::iterator iter = m_tails.begin();
-            iter != m_tails.end(); ++iter) {
-        delete iter->second; iter->second = NULL;
+    {
+        ScopedLock l(m_tail_watchers_mutex);
+        TailVec::iterator iter = m_tails_deleted.begin();
+        while (iter != m_tails_deleted.end()) {
+            delete(*iter); *iter = NULL;
+            m_tails_deleted.erase(iter);
+        }
     }
 
-    for (TaskMap::iterator iter = m_tasks.begin();
-            iter != m_tasks.end(); ++iter) {
-        delete iter->second; iter->second = NULL;
+    {
+        ScopedLock l(m_tail_watchers_mutex);
+        for (TailMap::iterator iter = m_tails.begin();
+                iter != m_tails.end(); ++iter) {
+            delete iter->second; iter->second = NULL;
+        }
+
+        for (TaskMap::iterator iter = m_tasks.begin();
+                iter != m_tasks.end(); ++iter) {
+            delete iter->second; iter->second = NULL;
+        }
     }
 
     OutputKafka::stopProducers();
@@ -329,6 +340,16 @@ bool Manager::refreshTasks()
     deleteTasks(deleted);
     addTasks(added);
     updateTasks(keeped);
+
+    /* delete old tail watchers */
+    {
+        ScopedLock l(m_tail_watchers_deleted_mutex); 
+        TailVec::iterator iter = m_tails_deleted.begin();
+        while (iter != m_tails_deleted.end()) {
+            delete(*iter); *iter = NULL;
+            m_tails_deleted.erase(iter);
+        }
+    }
 
     return true;
 }/*}}}*/
@@ -738,8 +759,13 @@ bool Manager::updateWatcherRotate(Manager *manager,
         return false;
     } else {
         manager->m_tails[path_pattern] = tw_new;
-        delete tw;
         LINFO << "Finish setting up new tail watcher";
+
+        {
+            /* Save tail watcher to be deleted */
+            ScopedLock l(manager->m_tail_watchers_deleted_mutex); 
+            manager->m_tails_deleted.push_back(tw);
+        }
     }
 
     return true;
@@ -802,10 +828,9 @@ string Manager::getCollectingState()
     rapidjson::StringBuffer sb;
     rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
 
-    ScopedLock l(m_tail_watchers_mutex);
-
     writer.StartObject();
 
+    ScopedLock l(m_tail_watchers_mutex);
     for (TailMap::iterator iter = m_tails.begin(); 
             iter != m_tails.end(); ++iter) {
         string path_pattern = iter->first;

@@ -79,8 +79,6 @@ void IOHandler::onNotify(void *arg)
         return;
     }
 
-    ScopedLock l(ioh->m_io_handler_mutex);
-
     if (NULL == ioh->m_receive_func)
         return;
 

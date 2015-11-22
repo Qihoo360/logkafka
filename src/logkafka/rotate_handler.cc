@@ -42,7 +42,6 @@ bool RotateHandler::init(string path,
 void RotateHandler::onNotify(void *arg)
 {
     RotateHandler *rh = (RotateHandler *)arg;
-    ScopedLock l(rh->m_rotate_handler_mutex);
 
     if (NULL == rh) {
         LERROR << "rotate handler is NULL";

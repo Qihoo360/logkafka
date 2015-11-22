@@ -43,9 +43,14 @@ TailWatcher::~TailWatcher()
     delete m_timer_trigger; m_timer_trigger = NULL;
     m_stat_trigger->close();
     delete m_stat_trigger; m_stat_trigger = NULL;
-
-    delete m_io_handler; m_io_handler = NULL;
-    delete m_rotate_handler; m_rotate_handler = NULL;
+    {
+        ScopedLock l(m_rotate_handler_mutex);
+        delete m_rotate_handler; m_rotate_handler = NULL;
+    }
+    {
+        ScopedLock l(m_io_handler_mutex);
+        delete m_io_handler; m_io_handler = NULL;
+    }
     delete m_output; m_output = NULL;
     delete m_filter; m_filter = NULL;
 }/*}}}*/
@@ -103,15 +108,18 @@ bool TailWatcher::init(uv_loop_t *loop,
         delete m_stat_trigger; m_stat_trigger = NULL;
         return false;
     }
-    
-    m_rotate_handler = new RotateHandler(); 
-    if (!m_rotate_handler->init(path, this, onRotate)) {
-        LERROR << "Fail to init rotate handler";
-        delete m_rotate_handler; m_rotate_handler = NULL;
-        return false;
-    }
 
     m_io_handler = NULL;
+    
+    {
+        ScopedLock l(m_rotate_handler_mutex);
+        m_rotate_handler = new RotateHandler(); 
+        if (!m_rotate_handler->init(path, this, onRotate)) {
+            LERROR << "Fail to init rotate handler";
+            delete m_rotate_handler; m_rotate_handler = NULL;
+            return false;
+        }
+    }
 
     return true;
 }/*}}}*/
@@ -120,13 +128,19 @@ void TailWatcher::onNotify(void *arg)
 {/*{{{*/
     TailWatcher *tw = (TailWatcher *)arg;
 
-    // handle rotating
-    if (NULL != tw->m_rotate_handler)
-        tw->m_rotate_handler->onNotify((void *)tw->m_rotate_handler);
+    {
+        /* handle rotating */
+        ScopedLock l(tw->m_rotate_handler_mutex);
+        if (NULL != tw->m_rotate_handler)
+            tw->m_rotate_handler->onNotify((void *)tw->m_rotate_handler);
+    }
 
-    // handle io
-    if (NULL != tw->m_io_handler)
-        tw->m_io_handler->onNotify((void *)tw->m_io_handler);
+    {
+        /* handle io */
+        ScopedLock l(tw->m_io_handler_mutex);
+        if (NULL != tw->m_io_handler)
+            tw->m_io_handler->onNotify((void *)tw->m_io_handler);
+    }
 }/*}}}*/
 
 bool TailWatcher::onRotate(void *arg, FILE *file)
@@ -214,10 +228,14 @@ bool TailWatcher::onRotate(void *arg, FILE *file)
             } else {
                 //(*updateWatcher)(tw->m_manager, tw->m_path_pattern, tw->m_path, 
                 //        swapState(&tw->m_position_entry, tw->m_io_handler));
+                l.unlock();
                 if (!(*updateWatcher)(tw->m_manager, tw->m_path_pattern, tw->m_path, tw->m_position_entry)) {
                     LWARNING << "Fail to rotate " << tw->m_path;
                     return false;
                 } else {
+                    LDEBUG << "Closing file"
+                           << ", fd: " << fileno(file)
+                           << ", inode: " << getInode(file);
                     fclose(file); 
                 }
             }
@@ -245,6 +263,7 @@ void TailWatcher::stop(bool close_io)
     if (NULL != m_timer_trigger) m_timer_trigger->stop();
     if (NULL != m_stat_trigger) m_stat_trigger->stop();
 
+    ScopedLock l(m_io_handler_mutex);
     if (close_io && NULL != m_io_handler) {
         m_io_handler->onNotify(this->m_io_handler);
         m_io_handler->close();
@@ -268,13 +287,16 @@ bool TailWatcher::isActive()
         return is_active;
     }
 
-    if (NULL == m_io_handler)
-        return false;
-
     struct timeval last_stat_time = (struct timeval){0};
-    if (!m_io_handler->getLastIOTime(last_stat_time)) {
-        LERROR << "Fail to get last io time";
-        return true;
+    {
+        ScopedLock l(m_io_handler_mutex);
+        if (NULL == m_io_handler)
+            return false;
+
+        if (!m_io_handler->getLastIOTime(last_stat_time)) {
+            LERROR << "Fail to get last io time";
+            return true;
+        }
     }
 
     LDEBUG << "m_stat_silent_max_ms: " << m_stat_silent_max_ms

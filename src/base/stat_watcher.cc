@@ -84,6 +84,7 @@ void StatWatcher::on_fs_poll_close_complete(uv_handle_t* handle)
 
 void StatWatcher::close()
 {/*{{{*/
+    if (NULL == m_handle) return;
     uv_close((uv_handle_t *)m_handle, on_fs_poll_close_complete);
     while (uv_is_active((uv_handle_t *)m_handle)) { }
 }/*}}}*/

@@ -81,6 +81,7 @@ void TimerWatcher::on_timer_close_complete(uv_handle_t* handle)
 
 void TimerWatcher::close()
 {/*{{{*/
+    if (NULL == m_handle) return;
     uv_close((uv_handle_t *)m_handle, on_timer_close_complete);
     while (uv_is_active((uv_handle_t *)m_handle)) { }
 }/*}}}*/
