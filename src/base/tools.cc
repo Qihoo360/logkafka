@@ -178,7 +178,6 @@ ino_t getInode(const char *path)
 ino_t getInode(int fd)
 {/*{{{*/
     struct stat buf;
-    off_t fsize;
     ino_t inode;
     if (0 == fstat(fd, &buf)) {
         inode = buf.st_ino;
@@ -215,7 +214,6 @@ off_t getFsize(int fd)
 {/*{{{*/
     struct stat buf;
     off_t fsize;
-    ino_t inode;
     if (0 == fstat(fd, &buf)) {
         fsize = buf.st_size;
     } else {

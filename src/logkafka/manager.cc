@@ -147,6 +147,8 @@ bool Manager::refreshTaskConfs()
             continue;
         }
 
+        string path_pattern = (itr->name).GetString();
+
         TaskConf item;
 
         const Value &log_item = itr->value;
@@ -182,6 +184,13 @@ bool Manager::refreshTaskConfs()
             string batchsize;
             Json::getValue(log_item, "batchsize", batchsize);
             item.log_conf.batchsize = atoi(batchsize.c_str());
+            if (item.log_conf.batchsize > (long)m_config->queue_buffering_max_messages) {
+                LWARNING << "The batch size " << item.log_conf.batchsize 
+                         << " is larger than queue size "
+                         << m_config->queue_buffering_max_messages
+                         << ", path pattern " << path_pattern;
+                item.log_conf.batchsize = m_config->queue_buffering_max_messages;
+            }
         } catch(...) { /* default value */ }
 
         item.log_conf.read_from_head = true;
@@ -222,7 +231,6 @@ bool Manager::refreshTaskConfs()
             item.filter_conf.regex_filter_pattern = regex_filter_pattern;
         } catch(...) { /* default value */ }
 
-        string path_pattern = (itr->name).GetString();
         if (item.isLegal()) {
             m_task_confs[path_pattern] = item;
         }
