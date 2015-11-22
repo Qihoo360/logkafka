@@ -82,4 +82,6 @@ bool globPath(const string &path_pattern, vector<string> &paths);
 int fdprintf(int fd, size_t bufmax, const char * fmt, ...);
 #endif
 
+extern string getHostname();
+
 #endif // BASE_TOOLS_H_

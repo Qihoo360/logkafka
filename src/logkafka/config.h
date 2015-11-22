@@ -56,6 +56,7 @@ class Config {
         string kafka_chroot_path;
         string gdbm_path;
         string pos_path;
+        string logkafka_id;
         unsigned long line_max_bytes;
         unsigned long zookeeper_upload_interval;
         unsigned long refresh_interval;

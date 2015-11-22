@@ -61,28 +61,22 @@ Zookeeper::~Zookeeper()
 
 bool Zookeeper::init(const string &zookeeper_urls, 
         const string &kafka_chroot_path,
+        const string &logkafka_id,
         long refresh_interval)
 {/*{{{*/
     m_zookeeper_urls = zookeeper_urls;
     m_kafka_chroot_path = kafka_chroot_path;
+    m_logkafka_id = logkafka_id;
 
     m_zk_log_fp = fopen("/dev/null", "w");
     zoo_set_log_stream(m_zk_log_fp);
-
-    char buf[256] = {'\0'};
-    if (0 == gethostname(buf, sizeof(buf) - 1)) {
-        m_hostname = buf;
-    } else {
-        LERROR << "Fail to get hostname";
-        return false;
-    }
 
     m_broker_ids_path = m_kafka_chroot_path + "/brokers/ids";
     m_logkafka_config_path = m_kafka_chroot_path + "/logkafka/config";
     m_logkafka_client_path = m_kafka_chroot_path + "/logkafka/client";
 
-    m_client_hostname_path = m_logkafka_client_path + "/" + m_hostname;
-    m_config_hostname_path = m_logkafka_config_path + "/" + m_hostname;
+    m_client_hostname_path = m_logkafka_client_path + "/" + m_logkafka_id;
+    m_config_hostname_path = m_logkafka_config_path + "/" + m_logkafka_id;
 
     refresh((void *)this);
 

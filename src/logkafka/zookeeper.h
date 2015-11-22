@@ -49,6 +49,7 @@ class Zookeeper
 
         bool init(const string &zookeeper_urls, 
                 const string &kafka_chroot_path,
+                const string &logkafka_id,
                 long refresh_interval = REFRESH_INTERVAL_MS);
 
         string getBrokerUrls();
@@ -95,7 +96,7 @@ class Zookeeper
     private:
         string m_zookeeper_urls;
         string m_kafka_chroot_path;
-        string m_hostname;
+        string m_logkafka_id;
         string m_log_config;
         string m_broker_urls;
         string m_config_hostname_path;

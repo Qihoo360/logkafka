@@ -40,6 +40,7 @@ Config::Config()
     {
         CFG_STR("zookeeper.connect", DEFAULT_ZOOKEEPER_CONNECT, CFGF_NONE),
         CFG_STR("pos.path", DEFAULT_POS_PATH, CFGF_NONE),
+        CFG_STR("logkafka.id", DEFAULT_LOGKAFKA_ID, CFGF_NONE),
         CFG_INT("line.max.bytes", DEFAULT_LINE_MAX_BYTES, CFGF_NONE),
         CFG_INT("stat.silent.max.ms", DEFAULT_STAT_SILENT_MAX_MS, CFGF_NONE),
         CFG_INT("zookeeper.upload.interval", DEFAULT_ZOOKEEPER_UPLOAD_INTERVAL,
@@ -88,6 +89,9 @@ bool Config::init(const char* filepath)
     PRINT_VAR(zookeeper_connect);
     pos_path = cfg_getstr(m_cfg, "pos.path"); 
     PRINT_VAR(pos_path);
+    logkafka_id = cfg_getstr(m_cfg, "logkafka.id"); 
+    if (logkafka_id == "") logkafka_id = getHostname();
+    PRINT_VAR(logkafka_id);
     line_max_bytes = cfg_getint(m_cfg, "line.max.bytes"); 
     PRINT_VAR(line_max_bytes);
     stat_silent_max_ms = cfg_getint(m_cfg, "stat.silent.max.ms"); 
@@ -113,6 +117,12 @@ bool Config::init(const char* filepath)
 
     if (!isAbsPath(pos_path.c_str())) {
         pos_path = realdir_s + '/' + pos_path;
+    }
+
+    if (logkafka_id == "") {
+        fprintf(stderr, "logkafka_id %s is not valid!\n",
+                logkafka_id.c_str());
+        return false;
     }
 
     if (line_max_bytes > HARD_LIMIT_LINE_MAX_BYTES) {
