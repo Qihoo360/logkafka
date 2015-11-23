@@ -49,20 +49,20 @@ php tools/log_config.php --monitor --monitor_name=Default \
                          --zookeeper_connect=127.0.0.1:2181
 ```
 
-* Monitor all configs with specified hostname
+* Monitor all configs with specified logkafka_id
 
 ```
 php tools/log_config.php --monitor --monitor_name=Default \
                          --zookeeper_connect=127.0.0.1:2181 \
-                         --hostname=test.qihoo.net
+                         --logkafka_id=test.qihoo.net
 ```
 
-* Monitor all configs with specified hostname and log path
+* Monitor all configs with specified logkafka_id and log path
 
 ```
 php tools/log_config.php --monitor --monitor_name=Default \
                          --zookeeper_connect=127.0.0.1:2181 \
-                         --hostname=test.qihoo.net \
+                         --logkafka_id=test.qihoo.net \
                          --log_path=/usr/local/apache2/logs/access_log.%Y%m%d
 ```
 
@@ -70,7 +70,7 @@ php tools/log_config.php --monitor --monitor_name=Default \
 
 Create a file ```tools/plugin/Monitor<YourMonitorName>.php```
 
-In this file, Add a class ```Monitor<YourMonitorName>```, extents ```Monitor```, and implements the function ```public function mon($zookeeper_connect, $hostname, $path_pattern, $collectionInfo)```
+In this file, Add a class ```Monitor<YourMonitorName>```, extents ```Monitor```, and implements the function ```public function mon($zookeeper_connect, $logkafka_id, $path_pattern, $collectionInfo)```
 
 Then, you can use it by command
 

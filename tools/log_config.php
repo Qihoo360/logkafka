@@ -33,9 +33,9 @@ function main()
     $monitorOpt = new Option(null, 'monitor');
     $monitorOpt -> setDescription('Monitor all available configs.');
 
-    $hostnameOpt = new Option(null, 'hostname', Getopt::REQUIRED_ARGUMENT);
-    $hostnameOpt -> setDescription('The hostname of machine which holds log files');
-    $hostnameOpt -> setValidation(function($value) {
+    $logkafka_idOpt = new Option(null, 'logkafka_id', Getopt::REQUIRED_ARGUMENT);
+    $logkafka_idOpt -> setDescription('The logkafka_id which holds log files');
+    $logkafka_idOpt -> setValidation(function($value) {
         $ret = AdminUtils::isHostnameValid($value);
         return $ret['valid'];
     });
@@ -169,7 +169,7 @@ function main()
         $listOpt,
         $monitorOpt,
 
-        $hostnameOpt,
+        $logkafka_idOpt,
         $log_pathOpt, 
 
         $topicOpt,
@@ -263,7 +263,7 @@ function checkArgs($parser)
     // check required args
     CommandLineUtils::checkRequiredArgs($parser, array('zookeeper_connect'));
     if ($parser['create'] !== NULL || $parser['delete'] !== NULL)
-        CommandLineUtils::checkRequiredArgs($parser, array('hostname'));
+        CommandLineUtils::checkRequiredArgs($parser, array('logkafka_id'));
 
     if ($parser['monitor'] !== NULL)
         CommandLineUtils::checkRequiredArgs($parser, array('monitor_name'));
@@ -275,12 +275,12 @@ function checkArgs($parser)
 function createConfig($adminUtils, $parser)
 {/*{{{*/
     $required = array(
-        "hostname",
+        "logkafka_id",
         "log_path",
         "topic",
         );
     //CommandLineUtils::checkRequiredArgs($parser, $required);
-    CommandLineUtils::checkRequiredArgs($parser, array('hostname','log_path','topic'));
+    CommandLineUtils::checkRequiredArgs($parser, array('logkafka_id','log_path','topic'));
 
     $configs = getConfig($parser, AdminUtils::$LOG_COLLECTION_CONFIG_ITEMS);
 
@@ -290,7 +290,7 @@ function createConfig($adminUtils, $parser)
 function deleteConfig($adminUtils, $parser)
 {/*{{{*/
     $required = array(
-        "hostname",
+        "logkafka_id",
         "log_path",
         //"topic",
         );
@@ -443,7 +443,7 @@ class AdminUtils
     );
 
     static $LOG_COLLECTION_CONFIG_ITEMS = array(
-        'hostname'   => array('type'=>'string', 'default'=>''),
+        'logkafka_id'   => array('type'=>'string', 'default'=>''),
         'log_path' => array('type'=>'string', 'default'=>''),
         'topic'      => array('type'=>'string', 'default'=>''),
         'partition'  => array('type'=>'integer', 'default'=>'-1'),
@@ -507,12 +507,12 @@ class AdminUtils
 
     public function createConfig($configs)
     {/*{{{*/
-        $hostname = $configs['hostname'];
-        unset($configs['hostname']);
+        $logkafka_id = $configs['logkafka_id'];
+        unset($configs['logkafka_id']);
         $log_path = $configs['log_path'];
         unset($configs['log_path']);
 
-        $path = $this->log_collect_config_path_.'/'.$hostname;
+        $path = $this->log_collect_config_path_.'/'.$logkafka_id;
         self::createPath_($path);
         $data = $this->zkClient_->get($path);
         if ($data === NULL)
@@ -527,14 +527,14 @@ class AdminUtils
 
         if (!$this->zkClient_->set($path, json_encode($info)))
         {
-            throw new LogConfException("set $hostname failed!\n");
+            throw new LogConfException("set $logkafka_id failed!\n");
         }
     }/*}}}*/
 
     public function deleteConfig($configs)
     {/*{{{*/
-        $hostname = $configs['hostname'];
-        $path = $this->log_collect_config_path_.'/'.$hostname;
+        $logkafka_id = $configs['logkafka_id'];
+        $path = $this->log_collect_config_path_.'/'.$logkafka_id;
         $data = $this->zkClient_->get($path);
         if ($data === NULL) {
             throw new LogConfException("$path doesn't exist! \n");
@@ -546,7 +546,7 @@ class AdminUtils
             unset($info->$configs['log_path']);
 
         if (!$this->zkClient_->set($path, json_encode($info))) {
-            throw new LogConfException("set $hostname failed! \n");
+            throw new LogConfException("set $logkafka_id failed! \n");
         }
     }/*}}}*/
 
@@ -564,17 +564,17 @@ class AdminUtils
             return;
         }
 
-        foreach ($tmp_ret as $hostname => $hostname_info)
+        foreach ($tmp_ret as $logkafka_id => $logkafka_id_info)
         {
-            if (empty($hostname_info))
+            if (empty($logkafka_id_info))
             {
-                echo("No logkafka configurations for hostname($hostname).\n");
+                echo("No logkafka configurations for logkafka_id($logkafka_id).\n");
             }
 
-            foreach ($hostname_info as $path => $path_info)
+            foreach ($logkafka_id_info as $path => $path_info)
             {
                 echo("\n");
-                echo("hostname: $hostname\n");
+                echo("logkafka_id: $logkafka_id\n");
                 echo("log_path: $path\n");
 
                 print_r($path_info);
@@ -596,17 +596,17 @@ class AdminUtils
             return;
         }
 
-        foreach ($tmp_ret as $hostname => $hostname_info)
+        foreach ($tmp_ret as $logkafka_id => $logkafka_id_info)
         {
-            if (empty($hostname_info))
+            if (empty($logkafka_id_info))
             {
-                echo("No logkafka configurations for hostname($hostname).\n");
+                echo("No logkafka configurations for logkafka_id($logkafka_id).\n");
             }
 
-            foreach ($hostname_info as $path => $path_info)
+            foreach ($logkafka_id_info as $path => $path_info)
             {
                 if ($this->monitor_ != NULL)
-                    $this->monitor_->mon($this->zookeeper_connect_, $hostname, $path, $path_info);
+                    $this->monitor_->mon($this->zookeeper_connect_, $logkafka_id, $path, $path_info);
             }
         }
     }/*}}}*/
@@ -619,21 +619,21 @@ class AdminUtils
             return $ret;
         }
 
-        if (array_key_exists('hostname', $configs) && !empty($configs['hostname']))
+        if (array_key_exists('logkafka_id', $configs) && !empty($configs['logkafka_id']))
         {
-            // get logkafka/conf/$hostname znode value
-            $hostname = $configs['hostname'];
+            // get logkafka/conf/$logkafka_id znode value
+            $logkafka_id = $configs['logkafka_id'];
 
-            $ret[$hostname] = array();
+            $ret[$logkafka_id] = array();
 
-            $tmp_ret = $this->getLogCollectionConf_($hostname);
+            $tmp_ret = $this->getLogCollectionConf_($logkafka_id);
             if ($tmp_ret['errno'] == 0) {
                 $lk_host_confs = $tmp_ret['data'];
             } else {
                 echo $tmp_ret['errmsg'];
             }
                 
-            $tmp_ret = $this->getLogCollectionState_($hostname);
+            $tmp_ret = $this->getLogCollectionState_($logkafka_id);
             if ($tmp_ret['errno'] == 0) {
                 $lk_host_stats = $tmp_ret['data'];
             } else {
@@ -646,19 +646,19 @@ class AdminUtils
 
             if (array_key_exists('log_path', $configs) && !empty($configs['log_path']) ) {
                 $log_path = $configs['log_path'];
-                $ret[$hostname][$log_path] =
-                    $this->getConfigByHostAndPath_($lk_host_confs, $lk_host_stats, $hostname, $log_path);
+                $ret[$logkafka_id][$log_path] =
+                    $this->getConfigByHostAndPath_($lk_host_confs, $lk_host_stats, $logkafka_id, $log_path);
             } else {
                 $paths = array_keys($lk_host_confs);
                 foreach ($paths as $path) {
-                    $ret[$hostname][$path] =
-                        $this->getConfigByHostAndPath_($lk_host_confs, $lk_host_stats, $hostname, $path);
+                    $ret[$logkafka_id][$path] =
+                        $this->getConfigByHostAndPath_($lk_host_confs, $lk_host_stats, $logkafka_id, $path);
                 }
             }
         }
         else
         {
-            // get logkafka/conf/<all hostname> znode value
+            // get logkafka/conf/<all logkafka_id> znode value
             $tmp_ret = $this->getLogkafkaHosts_();
             if ($tmp_ret['errno'] == 0) {
                 $hosts = $tmp_ret['data'];
@@ -709,7 +709,7 @@ class AdminUtils
         return $ret;
     }/*}}}*/
 
-    private function getConfigByHostAndPath_($lk_host_confs, $lk_host_stats, $hostname, $log_path)
+    private function getConfigByHostAndPath_($lk_host_confs, $lk_host_stats, $logkafka_id, $log_path)
     {/*{{{*/
         $ret = array();
         if (empty($lk_host_confs)) $lk_host_confs = array();
@@ -725,10 +725,10 @@ class AdminUtils
         return $ret;
     }/*}}}*/
 
-    private function getLogCollectionState_($hostname)
+    private function getLogCollectionState_($logkafka_id)
     {/*{{{*/
         $state = array();
-        $path = $this->log_collect_client_path_.'/'.$hostname;
+        $path = $this->log_collect_client_path_.'/'.$logkafka_id;
         $state = array();
         if ($this->zkClient_->exists($path))
         {
@@ -760,25 +760,25 @@ class AdminUtils
         return true;
     }/*}}}*/
 
-    static function isHostnameValid($hostname)
+    static function isHostnameValid($logkafka_id)
     {/*{{{*/
         $ret = array('valid'=>true, 'data'=>'');
 
-        if (preg_match('/localhost/', $hostname)) { // do not use localhost
-            $ret = array('valid'=>false, 'data'=>'use the real hostname rather than localhost!');
+        if (preg_match('/localhost/', $logkafka_id)) { // do not use localhost
+            $ret = array('valid'=>false, 'data'=>'use the real logkafka_id rather than localhost!');
             echo $ret['data'], PHP_EOL;
             return $ret;
         }
 
         $validHostnameRegex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$"; // conform to RFC 1123
 
-        if (!preg_match("/$validHostnameRegex/", $hostname)) {
-            $ret = array('valid'=>false, 'data'=>"hostname is invalid, does not match regex pattern '$validHostnameRegex', which conforms to RFC 1123!");
+        if (!preg_match("/$validHostnameRegex/", $logkafka_id)) {
+            $ret = array('valid'=>false, 'data'=>"logkafka_id is invalid, does not match regex pattern '$validHostnameRegex', which conforms to RFC 1123!");
             echo $ret['data'], PHP_EOL;
             return $ret;
         }
 
-        // valid hostname.
+        // valid logkafka_id.
         return $ret;
     }/*}}}*/
 
@@ -874,9 +874,9 @@ class AdminUtils
         }
     }/*}}}*/
 
-    private function getLogCollectionConf_($hostname)
+    private function getLogCollectionConf_($logkafka_id)
     {/*{{{*/
-        $path = $this->log_collect_config_path_.'/'.$hostname;
+        $path = $this->log_collect_config_path_.'/'.$logkafka_id;
         $data = $this->zkClient_->get($path);
         if ($data === NULL)
         {

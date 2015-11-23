@@ -12,10 +12,10 @@ class MonitorDefault extends Monitor
     );
 
     /* User-defined monitor function */
-    public function mon($zookeeper_connect, $hostname, $path_pattern, $collectionInfo)
+    public function mon($zookeeper_connect, $logkafka_id, $path_pattern, $collectionInfo)
     {
         echo("\n");
-        echo("hostname: $hostname\n");
+        echo("logkafka_id: $logkafka_id\n");
         echo("log_path: $path_pattern\n");
         print_r($collectionInfo);
 
@@ -29,7 +29,7 @@ class MonitorDefault extends Monitor
 
         if (!array_key_exists('stat', $collectionInfo))
         {
-            $message = "[Logkafka][$zookeeper_connect][$hostname][$path_pattern][Not collecting, please check logkafka error logs]";
+            $message = "[Logkafka][$zookeeper_connect][$logkafka_id][$path_pattern][Not collecting, please check logkafka error logs]";
             $this->alarm_($this->data_, $message);
             return;
         }
@@ -37,7 +37,7 @@ class MonitorDefault extends Monitor
         $stat = $collectionInfo['stat'];
 
         if (empty($stat)) {
-            $message = "[Logkafka][$zookeeper_connect][$hostname][$path_pattern][Not collecting, please check logkafka error logs]";
+            $message = "[Logkafka][$zookeeper_connect][$logkafka_id][$path_pattern][Not collecting, please check logkafka error logs]";
             $this->alarm_($this->data_, $message);
             return;
         }
@@ -51,7 +51,7 @@ class MonitorDefault extends Monitor
                 $lagging_bytes = $filesize - $filepos; 
                 if ($lagging_bytes > $lagging_max_bytes)
                 {
-                    $message = "[Logkafka][$zookeeper_connect][$hostname][$path_pattern][Lagging $lagging_bytes bytes, please check logkafka error logs]";
+                    $message = "[Logkafka][$zookeeper_connect][$logkafka_id][$path_pattern][Lagging $lagging_bytes bytes, please check logkafka error logs]";
                     $this->alarm_($this->data_, $message);
                     return;
                 }
@@ -66,7 +66,7 @@ class MonitorDefault extends Monitor
                 $lagging_sec = time() - $last_rotate_time_sec; 
                 if ($lagging_sec > $rotate_lagging_max_sec)
                 {
-                    $message = "[Logkafka][$zookeeper_connect][$hostname][$path_pattern][Rotate lagging $lagging_sec seconds, please check logkafka error logs]";
+                    $message = "[Logkafka][$zookeeper_connect][$logkafka_id][$path_pattern][Rotate lagging $lagging_sec seconds, please check logkafka error logs]";
                     $this->alarm_($this->data_, $message);
                     return;
                 }

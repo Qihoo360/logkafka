@@ -152,7 +152,7 @@ Note: If you already have kafka and zookeeper installed, you can start from step
      Collect apache access log on host "test.qihoo.net" to kafka brokers with zk urls "127.0.0.1:2181". The topic is "apache_access_log".
    
 	   ```
-	   php tools/log_config.php --create --zookeeper_connect=127.0.0.1:2181 --hostname=test.qihoo.net --log_path=/usr/local/apache2/logs/access_log.%Y%m%d --topic=apache_access_log
+	   php tools/log_config.php --create --zookeeper_connect=127.0.0.1:2181 --logkafka_id=test.qihoo.net --log_path=/usr/local/apache2/logs/access_log.%Y%m%d --topic=apache_access_log
 	   ```
 	   
 	   Note: 
@@ -161,7 +161,7 @@ Note: If you already have kafka and zookeeper installed, you can start from step
    * How to delete configs
    
 	   ```
-	   php tools/log_config.php --delete --zookeeper_connect=127.0.0.1:2181 --hostname=test.qihoo.net --log_path=/usr/local/apache2/logs/access_log.%Y%m%d
+	   php tools/log_config.php --delete --zookeeper_connect=127.0.0.1:2181 --logkafka_id=test.qihoo.net --log_path=/usr/local/apache2/logs/access_log.%Y%m%d
 	   ```
       
    * How to list configs and monitor sending progress
@@ -173,13 +173,13 @@ Note: If you already have kafka and zookeeper installed, you can start from step
 	   shows 
 	   
 	   ```
-	   hostname: test.qihoo.net
+	   logkafka_id: test.qihoo.net
 		log_path: /usr/local/apache2/logs/access_log.%Y%m%d
 		Array
 		(
 		    [conf] => Array
 		        (
-		            [hostname] => test.qihoo.net
+		            [logkafka_id] => test.qihoo.net
 		            [log_path] => /usr/local/apache2/logs/access_log.%Y%m%d
 		            [topic] => apache_access_log
 		            [partition] => -1
