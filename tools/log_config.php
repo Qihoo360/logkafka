@@ -36,7 +36,7 @@ function main()
     $logkafka_idOpt = new Option(null, 'logkafka_id', Getopt::REQUIRED_ARGUMENT);
     $logkafka_idOpt -> setDescription('The logkafka_id which holds log files');
     $logkafka_idOpt -> setValidation(function($value) {
-        $ret = AdminUtils::isHostnameValid($value);
+        $ret = AdminUtils::isLogkafkaIdValid($value);
         return $ret['valid'];
     });
 
@@ -760,20 +760,50 @@ class AdminUtils
         return true;
     }/*}}}*/
 
-    static function isHostnameValid($logkafka_id)
+    static function isHostnameValid($hostname)
     {/*{{{*/
         $ret = array('valid'=>true, 'data'=>'');
 
-        if (preg_match('/localhost/', $logkafka_id)) { // do not use localhost
-            $ret = array('valid'=>false, 'data'=>'use the real logkafka_id rather than localhost!');
+        if (preg_match('/localhost/', $hostname)) { // do not use localhost
+            $ret = array('valid'=>false, 'data'=>'use the real hostname rather than localhost!');
             echo $ret['data'], PHP_EOL;
             return $ret;
         }
 
         $validHostnameRegex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$"; // conform to RFC 1123
 
-        if (!preg_match("/$validHostnameRegex/", $logkafka_id)) {
-            $ret = array('valid'=>false, 'data'=>"logkafka_id is invalid, does not match regex pattern '$validHostnameRegex', which conforms to RFC 1123!");
+        if (!preg_match("/$validHostnameRegex/", $hostname)) {
+            $ret = array('valid'=>false, 'data'=>"hostname is invalid, does not match regex pattern '$validHostnameRegex', which conforms to RFC 1123!");
+            echo $ret['data'], PHP_EOL;
+            return $ret;
+        }
+
+        // valid hostname.
+        return $ret;
+    }/*}}}*/
+
+    static function isLogkafkaIdValid($logkafka_id)
+    {/*{{{*/
+        $ret = array('valid'=>true, 'data'=>'');
+
+        // 0 < length < 256 
+        $length = strlen($logkafka_id);
+        if ($length == 0) {
+            $ret = array('valid'=>false, 'data'=>"logkafka_id is empty!");
+            echo $ret['data'], PHP_EOL;
+            return $ret;
+        }
+
+        if ($length > 256) {
+            $ret = array('valid'=>false, 'data'=>"logkafka_id is too long, it's length should be less than 256!");
+            echo $ret['data'], PHP_EOL;
+            return $ret;
+        }
+
+        $validLogkafkaIdRegex = "^[0-9a-zA-Z.\-_]+$";
+
+        if (!preg_match("/$validLogkafkaIdRegex/", $logkafka_id)) {
+            $ret = array('valid'=>false, 'data'=>"logkafka_id is invalid, does not match regex pattern '$validLogkafkaIdRegex'!");
             echo $ret['data'], PHP_EOL;
             return $ret;
         }
@@ -831,8 +861,8 @@ class AdminUtils
         $length = strlen($topic);
         $length_valid = ($length > 0 && $length < 256) ? true: false;
 
-        // just "A-Z", "a-z", "0-9", "_", "-" is valid character 
-        $pattern_valid = !preg_match('/[^A-Za-z0-9._-]/', $topic)? true: false;
+        // just "A-Z", "a-z", "0-9", ".", "_", "-" is valid character 
+        $pattern_valid = !preg_match('/[^A-Za-z0-9._\-]/', $topic)? true: false;
 
         return ($length_valid and $pattern_valid);
     }/*}}}*/

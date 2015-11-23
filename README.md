@@ -1,5 +1,7 @@
 ## logkafka - Collect logs and send lines to Apache Kafka 0.8
 
+## Introduction [中文文档](https://github.com/Qihoo360/logkafka/wiki)
+
 logkafka sends log file contents to kafka 0.8 line by line. It treats one line of file as one kafka message.
 
 See [FAQ](docs/FAQ.md) if you wanna deploy it in production environment.
