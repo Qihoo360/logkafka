@@ -70,7 +70,11 @@ Two methods, choose accordingly.
 2. Just let cmake handle the dependencies ( **cmake version >= 3.0.2** ).
 
 	```
-	cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install -DINSTALL_LIBRDKAFKA=ON -DINSTALL_LIBZOOKEEPER_MT=ON  -DINSTALL_LIBUV=ON -DINSTALL_LIBPCRE2=ON
+	cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install \
+	                   -DINSTALL_LIBRDKAFKA=ON \
+	                   -DINSTALL_LIBZOOKEEPER_MT=ON \
+	                   -DINSTALL_LIBUV=ON \
+	                   -DINSTALL_LIBPCRE2=ON
 	cd _build
 	make -j4
 	make install
@@ -78,7 +82,7 @@ Two methods, choose accordingly.
 
 ## Usage
 
-Note: If you already have kafka and zookeeper installed, you can start from step 2 and replace zk urls with your own in the following steps, default is ```127.0.0.1:2181```.
+Note: If you already have kafka and zookeeper installed, you can start from step 2 and replace zk connection string with your own in the following steps, default is ```127.0.0.1:2181```.
 
 1. Deploy Kafka and Zookeeper in local host
     
@@ -93,7 +97,7 @@ Note: If you already have kafka and zookeeper installed, you can start from step
    Customizing _install/conf/logkafka.conf to your needs
    
    ```
-    zookeeper.urls = 127.0.0.1:2181
+    zookeeper.connect = 127.0.0.1:2181
     pos.path       = ../data/pos.myClusterName
     line.max.bytes = 1048576
     ...
@@ -149,10 +153,14 @@ Note: If you already have kafka and zookeeper installed, you can start from step
    
      Example: 
    
-     Collect apache access log on host "test.qihoo.net" to kafka brokers with zk urls "127.0.0.1:2181". The topic is "apache_access_log".
+     Collect apache access log on host "test.qihoo.net" to kafka brokers with zk connection string "127.0.0.1:2181". The topic is "apache_access_log".
    
 	   ```
-	   php tools/log_config.php --create --zookeeper_connect=127.0.0.1:2181 --logkafka_id=test.qihoo.net --log_path=/usr/local/apache2/logs/access_log.%Y%m%d --topic=apache_access_log
+	   php tools/log_config.php --create \
+	                            --zookeeper_connect=127.0.0.1:2181 \
+	                            --logkafka_id=test.qihoo.net \
+	                            --log_path=/usr/local/apache2/logs/access_log.%Y%m%d \
+	                            --topic=apache_access_log
 	   ```
 	   
 	   Note: 
@@ -161,7 +169,10 @@ Note: If you already have kafka and zookeeper installed, you can start from step
    * How to delete configs
    
 	   ```
-	   php tools/log_config.php --delete --zookeeper_connect=127.0.0.1:2181 --logkafka_id=test.qihoo.net --log_path=/usr/local/apache2/logs/access_log.%Y%m%d
+	   php tools/log_config.php --delete \
+	                            --zookeeper_connect=127.0.0.1:2181 \
+	                            --logkafka_id=test.qihoo.net \
+	                            --log_path=/usr/local/apache2/logs/access_log.%Y%m%d
 	   ```
       
    * How to list configs and monitor sending progress
@@ -231,7 +242,9 @@ Make sure you have lcov installed, check [this](http://ltp.sourceforge.net/cover
 compile with unittest and debug type
 
 ```
-cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install -Dtest=ON -DCMAKE_BUILD_TYPE=Debug
+cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install \
+                   -Dtest=ON \
+                   -DCMAKE_BUILD_TYPE=Debug
 cd _build
 make
 make logkafka_coverage  # run unittest
