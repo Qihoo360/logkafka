@@ -186,6 +186,8 @@ bool Producer::send(const vector<string> &messages,
 
         rkmessages[i].len     = messages[i].length();
         rkmessages[i].payload = strndup(messages[i].c_str(), rkmessages[i].len);
+        rkmessages[i].key_len = key.length();
+        rkmessages[i].key     = strndup(key.c_str(), rkmessages[i].key_len);
         rkmessages[i]._private = msgidp;
     }
 
