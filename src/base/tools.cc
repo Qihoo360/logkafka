@@ -310,9 +310,9 @@ int fdprintf(int fd, size_t bufmax, const char *fmt, ...)
 
 string getHostname()
 {/*{{{*/
-    char hostname[HOST_NAME_MAX + 1] = {'\0'};
+    char hostname[_POSIX_HOST_NAME_MAX + 1] = {'\0'};
 
-    if (0 != gethostname(hostname, HOST_NAME_MAX + 1)) {
+    if (0 != gethostname(hostname, _POSIX_HOST_NAME_MAX + 1)) {
         LERROR << "Fail to get hostname";
         return "";
     }

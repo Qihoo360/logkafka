@@ -36,7 +36,7 @@ bool TimerWatcher::init(uv_loop_t *loop,
     m_repeat = repeat;
 
     m_handle = new uv_timer_t();
-    bool res = uv_timer_init(m_loop, m_handle);
+    int res = uv_timer_init(m_loop, m_handle);
     if (res < 0) {
         LERROR << "Fail to init timer, " << uv_strerror(res);
         delete m_handle; m_handle = NULL;

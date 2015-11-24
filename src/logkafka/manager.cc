@@ -613,7 +613,7 @@ void Manager::startWatchers(set<string> paths)
 
         if (m_tails.find(path_pattern) != m_tails.end()) return;
 
-        FilePositionEntry *pe;
+        FilePositionEntry *pe = NULL;
 
         if (NULL != m_position_file) {
             PositionEntryKey pek = {path_pattern, task->getPath()};

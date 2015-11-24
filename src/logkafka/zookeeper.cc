@@ -133,7 +133,7 @@ bool Zookeeper::connect()
            << ", watcher = " << globalWatcher
            << ", sessionTimeout = " << m_session_timeout_ms
            << ", sessionId = " << (m_clientid == 0 ? 0 : m_clientid->client_id)
-           << ", sessionPasswd = " << ((m_clientid == 0) || (m_clientid->passwd == 0) ? "<null>" : "<hidden>")
+           << ", sessionPasswd = " << ((m_clientid == 0) || (strncmp(m_clientid->passwd, "", 2) == 0) ? "<null>" : "<hidden>")
            << ", context = " << (void*)this
            << ", flags = " << flags;
     m_zhandle = zookeeper_init(m_zookeeper_urls.c_str(), 

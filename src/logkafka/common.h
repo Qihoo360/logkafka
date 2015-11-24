@@ -55,4 +55,8 @@
 #define LOGKAFKA_PCRE2
 #define PCRE2_CODE_UNIT_WIDTH 8
 
+#ifndef _POSIX_HOST_NAME_MAX
+#define _POSIX_HOST_NAME_MAX 255
+#endif
+
 #endif // LOGKAFKA_COMMON_H_
