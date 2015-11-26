@@ -44,12 +44,12 @@ void RotateHandler::onNotify(void *arg)
     RotateHandler *rh = (RotateHandler *)arg;
 
     if (NULL == rh) {
-        LERROR << "rotate handler is NULL";
+        LERROR << "Rotate handler is NULL";
         return;
     }
 
     if (NULL == rh->m_rotate_func) {
-        LERROR << "rotate handler callback function is NULL";
+        LERROR << "Rotate handler callback function is NULL";
         return;
     }
 

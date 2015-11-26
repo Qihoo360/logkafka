@@ -326,7 +326,7 @@ bool Zookeeper::refreshBrokerUrls()
         m_broker_urls.append(port);
     }
 
-    LDEBUG << "broker urls: " << m_broker_urls.c_str();
+    LDEBUG << "Broker urls: " << m_broker_urls.c_str();
 
     return true;
 }/*}}}*/
@@ -340,10 +340,12 @@ string Zookeeper::getLogConfig()
 bool Zookeeper::ensurePathExist(const string& path)
 {/*{{{*/
     if (NULL == m_zhandle) {
+        LWARNING << "Zookeeper handle is NULL";
         return false;
     }
 
     if (ZOK == zoo_exists(m_zhandle, path.c_str(), 0, NULL)) {
+        LINFO << "Zookeeper node " << path << " already exists";
         return true;
     }
 
@@ -357,7 +359,7 @@ bool Zookeeper::ensurePathExist(const string& path)
 
     int ret = zoo_create(m_zhandle, path.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 0, NULL, 0);
     if (ret != ZOK && ret != ZNODEEXISTS) {
-        LERROR << "create znode failed: " << path.c_str()
+        LERROR << "Create znode failed: " << path.c_str()
                << ", error: " << zerror(ret);
         return false;
     }
@@ -368,6 +370,7 @@ bool Zookeeper::ensurePathExist(const string& path)
 bool Zookeeper::getZnodeData(const string& path, string &data)
 {/*{{{*/
     if (NULL == m_zhandle) {
+        LWARNING << "Zookeeper handle is NULL";
         return false;
     }
 
@@ -387,7 +390,7 @@ bool Zookeeper::getZnodeData(const string& path, string &data)
         data = string(buf);
         ret = true;
     } else {
-        LERROR << "get znode error"
+        LERROR << "Get znode error"
                << ", path: " << path 
                << ", error:%s" << zerror(status);
     }
@@ -399,35 +402,36 @@ bool Zookeeper::getZnodeData(const string& path, string &data)
 bool Zookeeper::setWatcher(const string& path, 
         watcher_fn watcher, void *wctx)
 {/*{{{*/
-    LINFO << "try to set watcher " << path.c_str();
+    LINFO << "Try to set watcher " << path.c_str();
 
     if (NULL == m_zhandle) {
-        LERROR << "zhandle is NULL";
+        LWARNING << "Zookeeper handle is NULL";
         return false; 
     }
 
-    if (!ensurePathExist(path))
-    {
-        LERROR << "create znode " << path;
+    if (!ensurePathExist(path)) {
+        LERROR << "Create znode " << path;
         return false;
     }
+
     int len = 0;
     int ret;
-    if (ZOK != (ret = zoo_wget(m_zhandle, path.c_str(), watcher, wctx, NULL, &len, NULL)))
-    {
-        LWARNING << "set watcher failed: " << path;
+    if (ZOK != (ret = zoo_wget(m_zhandle, path.c_str(), watcher, wctx, NULL, &len, NULL))) {
+        LWARNING << "Set watcher failed: " << path;
         return false;
     }
-    LINFO << "set watcher success: " << path.c_str();
+    LINFO << "Set watcher success: " << path.c_str();
+
     return true;
 }/*}}}*/
 
 bool Zookeeper::setChildrenWatcher(const string& path, 
         watcher_fn watcher, void *wctx)
 {/*{{{*/
-    LINFO << "try to set children watcher " << path.c_str();
+    LINFO << "Try to set children watcher " << path.c_str();
 
     if (NULL == m_zhandle) {
+        LWARNING << "Zookeeper handle is NULL";
         return false; 
     }
 
@@ -438,10 +442,10 @@ bool Zookeeper::setChildrenWatcher(const string& path,
 
     int ret = ZOK;
     if (ZOK != (ret = zoo_wget_children(m_zhandle, path.c_str(), watcher, wctx, NULL))) {
-        LWARNING << "set children watcher failed: " << path.c_str();
+        LWARNING << "Set children watcher failed: " << path.c_str();
         return false;
     }
-    LINFO << "set children watcher success: " << path.c_str();
+    LINFO << "Set children watcher success: " << path.c_str();
     return true;
 }/*}}}*/
 
@@ -492,7 +496,7 @@ void Zookeeper::globalWatcher(zhandle_t* zhandle, int type,
           << ", path: " << path;
 
     if (NULL == context) {
-        LWARNING << "broker change watcher context is NULL";
+        LWARNING << "Broker change watcher context is NULL";
         return;
     }
 
@@ -522,7 +526,7 @@ void Zookeeper::brokerChangeWatcher(zhandle_t* zhandle, int type,
           << ", path: " << path;
 
     if (NULL == context) {
-        LWARNING << "broker change watcher context is NULL";
+        LWARNING << "Broker change watcher context is NULL";
         return;
     }
 
@@ -543,7 +547,7 @@ void Zookeeper::configChangeWatcher(zhandle_t* zhandle, int type,
           << ", path: " << path;
 
     if (NULL == context) {
-        LWARNING << "config change watcher context is NULL";
+        LWARNING << "Config change watcher context is NULL";
         return;
     }
 
@@ -559,6 +563,7 @@ void Zookeeper::configChangeWatcher(zhandle_t* zhandle, int type,
 bool Zookeeper::getBrokerIds(vector<string>& ids)
 {/*{{{*/
     if (NULL == m_zhandle) {
+        LWARNING << "Zookeeper handle is NULL";
         return false; 
     }
 
@@ -573,8 +578,7 @@ bool Zookeeper::getBrokerIds(vector<string>& ids)
         return false;
     } else {
         ids.clear();
-        for (int i = 0; i < brokerids.count; ++i)
-        {
+        for (int i = 0; i < brokerids.count; ++i) {
             ids.push_back(brokerids.data[i]);
         }
         deallocate_String_vector(&brokerids);
@@ -631,7 +635,7 @@ bool Zookeeper::setLogState( const char *buf, int buflen,
     ScopedLock l(m_zhandle_mutex);
 
     if (NULL == m_zhandle) {
-        LWARNING << "zhandle is NULL";
+        LWARNING << "Zookeeper handle is NULL";
         return false;
     }
 

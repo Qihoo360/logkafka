@@ -67,10 +67,10 @@ bool Config::init(const char* filepath)
     int ret = cfg_parse(m_cfg, filepath);
     switch (ret) {
         case CFG_PARSE_ERROR:
-            fprintf(stderr, "config file parsing error!\n");
+            fprintf(stderr, "Config file parsing error!\n");
             return false;
         case CFG_FILE_ERROR:
-            fprintf(stderr, "config file error!\n");
+            fprintf(stderr, "Config file error!\n");
             return false;
         default:
             break;
@@ -78,12 +78,12 @@ bool Config::init(const char* filepath)
 
     char realdir[PATH_MAX + 1] = {'\0'};
     if (NULL == realDir(filepath, realdir)) {
-        fprintf(stderr, "get realdir of filepath(%s) error!\n", filepath);
+        fprintf(stderr, "Get realdir of filepath(%s) error!\n", filepath);
         return false;
     }
     string realdir_s(realdir);
         
-    LINFO << "get logkafka configs: ";
+    LINFO << "Get logkafka configs: ";
 
     zookeeper_connect = cfg_getstr(m_cfg, "zookeeper.connect"); 
     PRINT_VAR(zookeeper_connect);
@@ -120,25 +120,25 @@ bool Config::init(const char* filepath)
     }
 
     if (logkafka_id == "") {
-        fprintf(stderr, "logkafka_id %s is not valid!\n",
+        fprintf(stderr, "The logkafka_id %s is not valid!\n",
                 logkafka_id.c_str());
         return false;
     }
 
     if (line_max_bytes > HARD_LIMIT_LINE_MAX_BYTES) {
-        fprintf(stderr, "line_max_bytes %lu exceeds hard limit %lu!\n",
+        fprintf(stderr, "The line_max_bytes %lu exceeds hard limit %lu!\n",
                 line_max_bytes, HARD_LIMIT_LINE_MAX_BYTES);
         return false;
     }
 
     if (!TailWatcher::isStateSilentMaxMsValid(stat_silent_max_ms)) {
-        fprintf(stderr, "stat_silent_max_ms %lu is not valid!\n",
+        fprintf(stderr, "The stat_silent_max_ms %lu is not valid!\n",
                 stat_silent_max_ms);
         return false;
     }
 
     if (zookeeper_upload_interval > HARD_LIMIT_ZOOKEEPER_UPLOAD_INTERVAL) {
-        fprintf(stderr, "zookeeper_upload_interval %lu exceeds hard limit %lu!\n",
+        fprintf(stderr, "The zookeeper_upload_interval %lu exceeds hard limit %lu!\n",
                 zookeeper_upload_interval, HARD_LIMIT_ZOOKEEPER_UPLOAD_INTERVAL);
         return false;
     }

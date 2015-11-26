@@ -447,9 +447,9 @@ void Manager::updateTaskPaths(const string &path_pattern)
         while (task.hasPath()) {
             string first_path = task.getFirstPath();
 
-            LDEBUG << "expaned path" << expanded_path;
-            LDEBUG << "tail path " << tail.getPath();
-            LDEBUG << "task first path " << first_path;
+            LDEBUG << "Expaned path" << expanded_path;
+            LDEBUG << "Tail path " << tail.getPath();
+            LDEBUG << "Task first path " << first_path;
 
             if (tail.getPath() == first_path) {
                 if (!tail.isActive()) {
@@ -565,7 +565,7 @@ TailWatcher* Manager::setupWatcher(
         PositionEntry *position_entry,
         bool enabled)
 {/*{{{*/
-    LDEBUG << "task conf" << conf.log_conf;
+    LDEBUG << "Task conf" << conf.log_conf;
 
     OutputKafka *output = new OutputKafka();
     output->setKafkaConf(m_kafka_conf);
@@ -812,7 +812,7 @@ void Manager::uploadCollectingState(void *arg)
     
     Zookeeper *zookeeper = manager->m_zookeeper;
     if (NULL == manager->m_zookeeper) {
-        LERROR << "zookeeper is NULL";
+        LERROR << "Zookeeper is NULL";
         return;
     }
 

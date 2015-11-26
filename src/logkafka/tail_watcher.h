@@ -86,48 +86,7 @@ class TailWatcher
 
         /* serialize to json */
         template <typename JsonWriter>
-        void Serialize(JsonWriter& writer)
-        {/*{{{*/
-            string realpath = m_path;
-            long inode = INO_NONE;
-            long filepos = -1;
-            long filesize = 0;
-            struct timeval last_rotate_time = (struct timeval){0};
-
-            {
-                ScopedLock l(m_io_handler_mutex);
-                if (NULL != m_io_handler) {
-                    inode = m_io_handler->getFileInode();
-                    filepos = m_io_handler->getFilePos();
-                    filesize = m_io_handler->getFileSize();
-                }
-            }
-
-            {
-                ScopedLock l(m_rotate_handler_mutex);
-                if (NULL != m_rotate_handler) {
-                    m_rotate_handler->getLastRotateTime(last_rotate_time);
-                }
-            }
-
-            long last_rotate_time_sec = last_rotate_time.tv_sec;
-
-            // This base class just write out name-value pairs, without wrapping within an object.
-            writer.StartObject();
-
-            writer.String("realpath");
-            writer.String(realpath.c_str(), (rapidjson::SizeType)realpath.length()); // Supplying length of string is faster.
-            writer.String("inode");
-            writer.String(int2Str(inode).c_str());
-            writer.String("filepos");
-            writer.String(int2Str(filepos).c_str());
-            writer.String("filesize");
-            writer.String(int2Str(filesize).c_str());
-            writer.String("last_rotate_time_sec");
-            writer.String(int2Str(last_rotate_time_sec).c_str());
-
-            writer.EndObject();
-        };/*}}}*/
+        void Serialize(JsonWriter& writer);
 
     public:
         bool m_unwatched;
@@ -160,6 +119,50 @@ class TailWatcher
         static const unsigned long TIMER_WATCHER_DEFAULT_REPEAT;
         static const unsigned long STAT_WATCHER_DEFAULT_INTERVAL;
 };
+
+template <typename JsonWriter>
+void TailWatcher::Serialize(JsonWriter& writer)
+{/*{{{*/
+    string realpath = m_path;
+    long inode = INO_NONE;
+    long filepos = -1;
+    long filesize = 0;
+    struct timeval last_rotate_time = (struct timeval){0};
+
+    {
+        ScopedLock l(m_io_handler_mutex);
+        if (NULL != m_io_handler) {
+            inode = m_io_handler->getFileInode();
+            filepos = m_io_handler->getFilePos();
+            filesize = m_io_handler->getFileSize();
+        }
+    }
+
+    {
+        ScopedLock l(m_rotate_handler_mutex);
+        if (NULL != m_rotate_handler) {
+            m_rotate_handler->getLastRotateTime(last_rotate_time);
+        }
+    }
+
+    long last_rotate_time_sec = last_rotate_time.tv_sec;
+
+    // This base class just write out name-value pairs, without wrapping within an object.
+    writer.StartObject();
+
+    writer.String("realpath");
+    writer.String(realpath.c_str(), (rapidjson::SizeType)realpath.length()); // Supplying length of string is faster.
+    writer.String("inode");
+    writer.String(int2Str(inode).c_str());
+    writer.String("filepos");
+    writer.String(int2Str(filepos).c_str());
+    writer.String("filesize");
+    writer.String(int2Str(filesize).c_str());
+    writer.String("last_rotate_time_sec");
+    writer.String(int2Str(last_rotate_time_sec).c_str());
+
+    writer.EndObject();
+};/*}}}*/
 
 } // namespace logkafka
 

@@ -75,7 +75,7 @@ class Config {
 template <typename T>
 void Config::print(char *name, const T& value)
 {/*{{{*/
-    LINFO << "name: " << name << ", value: " << value;
+    LINFO << "Name: " << name << ", Value: " << value;
 }/*}}}*/
 
 } // namespace logkafka

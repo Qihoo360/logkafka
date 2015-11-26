@@ -50,7 +50,7 @@ void SignalHandler::default_cb(uv_signal_t* handle, int signum)
 {
     SignalHandler *sh = reinterpret_cast<SignalHandler *>(handle->data);
     if (NULL == sh->m_signal_func) {
-        LERROR << "signal handler callback function is NULL";
+        LERROR << "Signal handler callback function is NULL";
         return;
     }
 

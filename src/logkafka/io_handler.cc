@@ -75,15 +75,18 @@ void IOHandler::onNotify(void *arg)
     IOHandler *ioh = reinterpret_cast<IOHandler *>(arg);
 
     if (NULL == ioh) {
-        LERROR << "io handler is NULL";
+        LWARNING << "IO handler is NULL";
         return;
     }
 
-    if (NULL == ioh->m_receive_func)
+    if (NULL == ioh->m_receive_func) {
+        LWARNING << "Receive function is NULL";
         return;
+    }
 
-    if (NULL == ioh->m_file)
+    if (NULL == ioh->m_file) {
         return;
+    }
     
     /* handle last unreceived lines */ 
     if (!ioh->m_lines.empty()) {
