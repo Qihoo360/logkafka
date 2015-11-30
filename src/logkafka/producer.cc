@@ -104,7 +104,7 @@ bool Producer::init(Zookeeper& zookeeper,
 
     /* If offset reporting (-o report) is enabled, use the
      * richer dr_msg_cb instead. */
-    bool report_offsets = true;
+    bool report_offsets = false;
     if (report_offsets) {
         rd_kafka_conf_set_dr_msg_cb(m_conf, msgDelivered2);
     } else {
@@ -221,6 +221,12 @@ bool Producer::send(const vector<string> &messages,
     }
 
     rd_kafka_poll(m_rk, 0);
+
+    /* Note: librdkafka will duplicate the key once more, 
+     * so we can free the original one after producing*/
+    for (i = 0 ; i < msgcnt ; ++i) {
+        free(rkmessages[i].key);
+    }
 
     free(rkmessages);
     LINFO << "Partitioner: Produced "<< r << " messages, waiting for deliveries";
