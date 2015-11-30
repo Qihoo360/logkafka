@@ -89,6 +89,9 @@ void RotateHandler::onNotify(void *arg)
             rh->m_fsize = fsize;
             file = NULL;
         }
+    } else if (fsize > rh->m_fsize) {
+        /* inode is the same, and file is not truncated, we should update recorded file size */
+        rh->m_fsize = fsize;
     }
 
     if (NULL != file) {
