@@ -53,6 +53,8 @@ class IOHandler
                   PositionEntry *position_entry,
                   unsigned int max_line_at_once,
                   unsigned int line_max_bytes,
+                  unsigned int read_max_bytes,
+                  char line_delimiter,
                   void *filter,
                   void *output,
                   ReceiveFunc receiveLines);
@@ -73,11 +75,15 @@ class IOHandler
     private:
         unsigned int m_max_line_at_once;
         unsigned int m_line_max_bytes;
+        unsigned int m_buffer_max_bytes;
         ReceiveFunc m_receive_func;
         void *m_filter;
         void *m_output;
 
-        char *m_line;
+        char *m_buffer;
+        size_t m_buffer_len;
+        char m_line_delimiter;
+        bool m_remove_delimiter;
         vector<string> m_lines;
 
         struct timeval m_last_io_time;

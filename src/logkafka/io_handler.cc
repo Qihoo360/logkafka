@@ -26,7 +26,8 @@ namespace logkafka {
 IOHandler::IOHandler()
 {/*{{{*/
     m_file = NULL;
-    m_line = NULL;
+    m_buffer = NULL;
+    m_buffer_len = 0;
     m_last_io_time = (struct timeval){0};
     m_filter = NULL;
     m_output = NULL;
@@ -34,14 +35,16 @@ IOHandler::IOHandler()
 
 IOHandler::~IOHandler()
 {/*{{{*/
-    free(m_line);
-    m_line = NULL;
+    free(m_buffer);
+    m_buffer = NULL;
 }/*}}}*/
 
 bool IOHandler::init(FILE *file,
                      PositionEntry *position_entry,
                      unsigned int max_line_at_once,
                      unsigned int line_max_bytes,
+                     unsigned int buffer_max_bytes,
+                     char line_delimiter,
                      void *filter,
                      void *output,
                      ReceiveFunc receiveLines)
@@ -50,17 +53,20 @@ bool IOHandler::init(FILE *file,
     m_position_entry = position_entry;
     m_max_line_at_once = max_line_at_once;
     m_line_max_bytes = line_max_bytes;
+    m_buffer_max_bytes = buffer_max_bytes;
+    m_line_delimiter = line_delimiter;
+    m_remove_delimiter = true;
     m_filter = filter;
     m_output = output;
     m_receive_func = receiveLines;
 
-    if (NULL == (m_line = reinterpret_cast<char *>(malloc(m_line_max_bytes + 1)))) {
-        LERROR << "Fail to malloc " << (m_line_max_bytes + 1) << " bytes"
+    if (NULL == (m_buffer = reinterpret_cast<char *>(malloc(m_buffer_max_bytes + 1)))) {
+        LERROR << "Fail to malloc " << (m_buffer_max_bytes + 1) << " bytes"
                << ", " << strerror(errno);
         return false;
     }
     
-    bzero(m_line, m_line_max_bytes + 1);
+    bzero(m_buffer, m_buffer_max_bytes + 1);
 
     if (0 != gettimeofday(&m_last_io_time, NULL)) {
         LERROR << "Fail to get time";
@@ -106,17 +112,40 @@ void IOHandler::onNotify(void *arg)
         read_more = false;
 
         while (true) {
-            char *line = NULL;
-            pthread_mutex_lock(&(ioh->m_file_mutex).mutex());
-            if (NULL != ioh->m_file) {
-                line = fgets(ioh->m_line, ioh->m_line_max_bytes + 1, ioh->m_file);
+            {
+                ScopedLock l(ioh->m_file_mutex);
+                if (NULL != ioh->m_file) {
+                    ioh->m_buffer_len = fread(ioh->m_buffer, 1, ioh->m_buffer_max_bytes, ioh->m_file);
+                }
             }
-            pthread_mutex_unlock(&(ioh->m_file_mutex).mutex());
 
-            if (NULL != line) {
-                size_t len = strlen(ioh->m_line);
-                if (ioh->m_line[len-1] == '\n') ioh->m_line[len-1] = '\0';
-                ioh->m_lines.push_back(string(ioh->m_line));
+            if (0 != ioh->m_buffer_len) {
+                size_t cur_buf_pos = 0;
+                size_t cur_line_len = 0;
+                char *cur_line = ioh->m_buffer;
+                for (size_t i = 0; i < ioh->m_buffer_len; ++i) {
+                    cur_line_len = (i + 1) - cur_buf_pos;
+                    cur_line = ioh->m_buffer + cur_buf_pos;
+
+                    if (ioh->m_buffer[i] == ioh->m_line_delimiter) {
+                        if (ioh->m_remove_delimiter) {
+                            cur_line_len -= 1;
+                        }
+
+                        ioh->m_lines.push_back(string(cur_line, cur_line_len));
+                        cur_buf_pos = i + 1;
+                    } else if (cur_line_len >= ioh->m_line_max_bytes) {
+                        ioh->m_lines.push_back(string(cur_line, cur_line_len));
+                        cur_buf_pos = i + 1;
+                    }
+
+                }
+
+                size_t buffer_left_bytes = ioh->m_buffer_len - cur_buf_pos;
+                if (buffer_left_bytes > 0) {
+                    ScopedLock l(ioh->m_file_mutex);
+                    fseek(ioh->m_file, - buffer_left_bytes, SEEK_CUR);
+                }
             } else {
                 if (int err = ferror(ioh->m_file)) {
                     LERROR << "Fail to read from fd " << fileno(ioh->m_file)

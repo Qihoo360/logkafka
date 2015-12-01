@@ -49,19 +49,23 @@ struct LogConf {
 
     bool read_from_head;
 
+    char line_delimiter;
+
     LogConf()
     {/*{{{*/
         log_path = "";
         follow_last = false;
         batchsize = 200;
         read_from_head = true;
+        line_delimiter = '\n';
     }/*}}}*/
 
     bool operator==(const LogConf& hs) const
     {/*{{{*/
         return (log_path == hs.log_path) &&
             (follow_last == hs.follow_last) &&
-            (batchsize == hs.batchsize);
+            (batchsize == hs.batchsize) &&
+            (line_delimiter == hs.line_delimiter);
     };/*}}}*/
 
     bool operator!=(const LogConf& hs) const
@@ -74,7 +78,8 @@ struct LogConf {
         os << "log path: " << lc.log_path
            << "follow last" << lc.follow_last
            << "batchsize" << lc.batchsize
-           << "read from head" << lc.read_from_head;
+           << "read from head" << lc.read_from_head
+           << "line delimiter" << lc.line_delimiter;
 
         return os;
     }/*}}}*/

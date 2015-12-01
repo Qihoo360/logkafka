@@ -58,6 +58,8 @@ class Config {
         string pos_path;
         string logkafka_id;
         unsigned long line_max_bytes;
+        unsigned long read_max_bytes;
+        unsigned long key_max_bytes;
         unsigned long zookeeper_upload_interval;
         unsigned long refresh_interval;
         unsigned long stat_silent_max_ms;

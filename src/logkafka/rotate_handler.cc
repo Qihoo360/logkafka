@@ -67,7 +67,7 @@ void RotateHandler::onNotify(void *arg)
     }
 
     if (rh->m_inode != inode || fsize < rh->m_fsize) {
-        //LINFO << "Opening file " << rh->m_path; //FIXME: this log will cause core dump
+        LINFO << "Opening file " << rh->m_path; //FIXME: this log will cause core dump
 
         file = fopen(rh->m_path.c_str(), "r");
         if (file == NULL) {
@@ -83,7 +83,7 @@ void RotateHandler::onNotify(void *arg)
         if (!(*rh->m_rotate_func)(rh->m_rotate_func_arg, file)) {
             LWARNING << "Fail to rotate " << rh->m_path;
         } else {
-            //LINFO << "Finish rotating " << rh->m_path; //FIXME: this log will cause core dump
+            LINFO << "Finish rotating " << rh->m_path; //FIXME: this log will cause core dump
             rh->updateLastRotateTime();
             rh->m_inode = inode;
             rh->m_fsize = fsize;

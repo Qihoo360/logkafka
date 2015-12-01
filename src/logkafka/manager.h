@@ -124,6 +124,7 @@ class Manager
     private:
         unsigned long m_refresh_interval;
         unsigned long m_line_max_bytes;
+        unsigned long m_read_max_bytes;
         unsigned long m_stat_silent_max_ms;
         string m_pos_path;
         uv_loop_t *m_loop;

@@ -41,6 +41,7 @@ Manager::Manager(const Config *config)
     m_pos_path = config->pos_path;
     m_refresh_interval = config->refresh_interval;
     m_line_max_bytes = config->line_max_bytes;
+    m_read_max_bytes = config->read_max_bytes;
     m_stat_silent_max_ms = config->stat_silent_max_ms;
 
     m_refresh_trigger = NULL;
@@ -93,7 +94,7 @@ bool Manager::init(uv_loop_t *loop)
 
 bool Manager::initKafkaConf()
 {/*{{{*/
-    m_kafka_conf.message_max_bytes = m_config->line_max_bytes;
+    m_kafka_conf.message_max_bytes = m_config->line_max_bytes + m_config->key_max_bytes;
     m_kafka_conf.message_send_max_retries = m_config->message_send_max_retries;
     m_kafka_conf.queue_buffering_max_messages = m_config->queue_buffering_max_messages;
 
@@ -190,6 +191,14 @@ bool Manager::refreshTaskConfs()
                          << m_config->queue_buffering_max_messages
                          << ", path pattern " << path_pattern;
                 item.log_conf.batchsize = m_config->queue_buffering_max_messages;
+            }
+        } catch(...) { /* default value */ }
+
+        try {
+            string line_delimiter;
+            Json::getValue(log_item, "line_delimiter", line_delimiter);
+            if (line_delimiter.length() > 0) {
+                item.log_conf.line_delimiter = line_delimiter.at(0);
             }
         } catch(...) { /* default value */ }
 
@@ -587,6 +596,8 @@ TailWatcher* Manager::setupWatcher(
             true,
             conf.log_conf.batchsize,
             m_line_max_bytes,
+            m_read_max_bytes,
+            conf.log_conf.line_delimiter,
             updateWatcherRotate, 
             receiveLines,
             conf,
