@@ -34,6 +34,15 @@
   
   The timeformat is allowed to embeded in log path. For certain log path, the log files will be collected chronologically.
   
+####  <a name="Line Delimiter"></a>Line Delimiter
+
+The default line delimiter is '\n', you can set the `line_delimiter` when creating or modifying log config. The `line_delimiter` can noly accept the decimal value of ascii character.
+
+Check [ASCII chart](http://www.bluesock.org/~willg/dev/ascii.html).
+
+The logkafka will remove line delimiter by default, if you want to keep it, set `remove_delimiter` to `false`.
+
+  
 ### Monitor
 
 The Monitor will check collecting information periodically.

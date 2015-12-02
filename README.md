@@ -18,6 +18,7 @@ See [FAQ](docs/FAQ.md) if you wanna deploy it in production environment.
 * batching messages
 * compression (none, gzip, snappy)
 * [message regex filter](docs/Features.md#Regex Filter)
+* [user-defined line delimiter](docs/Features.md#Line Delimiter)
 * [user-defined monitor](docs/Features.md#Monitor)
 
 ## Differences with other log aggregation and monitoring tools 
@@ -125,7 +126,7 @@ Note: If you already have kafka and zookeeper installed, you can start from step
 
   3.1 UI (with kafka-manger)
 
-  We add logkafka as one kafka-manager extension. You need to [install and start kafka-manager](https://github.com/yahoo/kafka-manager/), add cluster with logkafka enabled, then you can manage logkafka with the 'Logkafka' menu.
+  We add logkafka as one kafka-manager extension. You need to [install and start kafka-manager](https://github.com/zheolong/kafka-manager/), add cluster with logkafka enabled, then you can manage logkafka with the 'Logkafka' menu.
   
   * How to add cluster with logkafka enabled
 
