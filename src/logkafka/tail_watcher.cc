@@ -65,6 +65,7 @@ bool TailWatcher::init(uv_loop_t *loop,
         unsigned long line_max_bytes, 
         unsigned long read_max_bytes,
         char line_delimiter,
+        bool remove_delimiter,
         UpdateFunc updateWatcher,
         ReceiveFunc receiveLines,
         TaskConf conf,
@@ -83,6 +84,7 @@ bool TailWatcher::init(uv_loop_t *loop,
     m_line_max_bytes = line_max_bytes;
     m_read_max_bytes = read_max_bytes;
     m_line_delimiter = line_delimiter;
+    m_remove_delimiter = remove_delimiter;
     m_updateWatcher = updateWatcher;
     m_receive_func = receiveLines;
     m_conf = conf;
@@ -155,6 +157,7 @@ bool TailWatcher::onRotate(void *arg, FILE *file)
     unsigned int line_max_bytes = tw->m_line_max_bytes;
     unsigned int read_max_bytes = tw->m_read_max_bytes;
     char line_delimiter = tw->m_line_delimiter;
+    bool remove_delimiter = tw->m_remove_delimiter;
     ReceiveFunc receiveLines = tw->m_receive_func;
     UpdateFunc updateWatcher = tw->m_updateWatcher;
 
@@ -185,7 +188,8 @@ bool TailWatcher::onRotate(void *arg, FILE *file)
 
             tw->m_io_handler = new IOHandler();
             bool res = tw->m_io_handler->init(file, pe, max_line_at_once, 
-                    line_max_bytes, read_max_bytes, line_delimiter,
+                    line_max_bytes, read_max_bytes,
+                    line_delimiter, remove_delimiter,
                     tw->m_filter, tw->m_output, receiveLines);
             if (!res) {
                 LERROR << "Fail to init io handler, inode: " << inode;
@@ -206,7 +210,8 @@ bool TailWatcher::onRotate(void *arg, FILE *file)
 
                 IOHandler *io_handler = new IOHandler();
                 bool res = io_handler->init(file, pe, max_line_at_once, 
-                        line_max_bytes, read_max_bytes, line_delimiter,
+                        line_max_bytes, read_max_bytes,
+                        line_delimiter, remove_delimiter,
                         tw->m_filter, tw->m_output, receiveLines);
                 if (!res) {
                     LERROR << "Fail to init io handler, inode: " << inode;
@@ -224,7 +229,9 @@ bool TailWatcher::onRotate(void *arg, FILE *file)
 
                 IOHandler *io_handler = new IOHandler();
                 bool res = io_handler->init(file, pe, max_line_at_once, 
-                        line_max_bytes, read_max_bytes, line_delimiter, tw->m_filter, tw->m_output, receiveLines);
+                        line_max_bytes, read_max_bytes,
+                        line_delimiter, remove_delimiter,
+                        tw->m_filter, tw->m_output, receiveLines);
                 if (!res) {
                     LERROR << "Fail to init io handler, inode: " << inode;
                     delete io_handler;

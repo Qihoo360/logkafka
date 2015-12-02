@@ -51,6 +51,8 @@ struct LogConf {
 
     char line_delimiter;
 
+    bool remove_delimiter;
+
     LogConf()
     {/*{{{*/
         log_path = "";
@@ -58,6 +60,7 @@ struct LogConf {
         batchsize = 200;
         read_from_head = true;
         line_delimiter = '\n';
+        remove_delimiter = true;
     }/*}}}*/
 
     bool operator==(const LogConf& hs) const
@@ -65,7 +68,8 @@ struct LogConf {
         return (log_path == hs.log_path) &&
             (follow_last == hs.follow_last) &&
             (batchsize == hs.batchsize) &&
-            (line_delimiter == hs.line_delimiter);
+            (line_delimiter == hs.line_delimiter) &&
+            (remove_delimiter == hs.remove_delimiter);
     };/*}}}*/
 
     bool operator!=(const LogConf& hs) const
@@ -79,7 +83,8 @@ struct LogConf {
            << "follow last" << lc.follow_last
            << "batchsize" << lc.batchsize
            << "read from head" << lc.read_from_head
-           << "line delimiter" << lc.line_delimiter;
+           << "line delimiter" << lc.line_delimiter
+           << "remove delimiter" << lc.remove_delimiter;
 
         return os;
     }/*}}}*/

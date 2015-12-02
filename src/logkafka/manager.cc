@@ -197,9 +197,13 @@ bool Manager::refreshTaskConfs()
         try {
             string line_delimiter;
             Json::getValue(log_item, "line_delimiter", line_delimiter);
-            if (line_delimiter.length() > 0) {
-                item.log_conf.line_delimiter = line_delimiter.at(0);
-            }
+            item.log_conf.line_delimiter = atoi(line_delimiter.c_str());
+        } catch(...) { /* default value */ }
+
+        try {
+            string remove_delimiter;
+            Json::getValue(log_item, "remove_delimiter", remove_delimiter);
+            item.log_conf.remove_delimiter = str2Bool(remove_delimiter.c_str());
         } catch(...) { /* default value */ }
 
         item.log_conf.read_from_head = true;
@@ -598,6 +602,7 @@ TailWatcher* Manager::setupWatcher(
             m_line_max_bytes,
             m_read_max_bytes,
             conf.log_conf.line_delimiter,
+            conf.log_conf.remove_delimiter,
             updateWatcherRotate, 
             receiveLines,
             conf,

@@ -55,6 +55,7 @@ class IOHandler
                   unsigned int line_max_bytes,
                   unsigned int read_max_bytes,
                   char line_delimiter,
+                  bool remove_delimiter,
                   void *filter,
                   void *output,
                   ReceiveFunc receiveLines);

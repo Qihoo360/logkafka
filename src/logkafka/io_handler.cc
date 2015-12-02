@@ -45,6 +45,7 @@ bool IOHandler::init(FILE *file,
                      unsigned int line_max_bytes,
                      unsigned int buffer_max_bytes,
                      char line_delimiter,
+                     bool remove_delimiter,
                      void *filter,
                      void *output,
                      ReceiveFunc receiveLines)
@@ -55,7 +56,7 @@ bool IOHandler::init(FILE *file,
     m_line_max_bytes = line_max_bytes;
     m_buffer_max_bytes = buffer_max_bytes;
     m_line_delimiter = line_delimiter;
-    m_remove_delimiter = true;
+    m_remove_delimiter = remove_delimiter;
     m_filter = filter;
     m_output = output;
     m_receive_func = receiveLines;

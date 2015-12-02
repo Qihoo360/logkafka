@@ -103,6 +103,22 @@ function main()
         return in_array($value, array('true', 'false'));
     });
 
+    $line_delimiterOpt = new Option(null, 'line_delimiter', Getopt::REQUIRED_ARGUMENT);
+    $line_delimiterOpt -> setDescription('The line delimiter of log file, use the ascii code');
+    $line_delimiterOpt -> setDefaultValue('10'); // 10 means ascii '\n'
+    $line_delimiterOpt -> setValidation(function($value) {
+        return (is_numeric($value) && (int)$value >= 0 && (int)$value <= 255);
+    });
+
+    $remove_delimiterOpt = new Option(null, 'remove_delimiter', Getopt::REQUIRED_ARGUMENT);
+    $remove_delimiterOpt -> setDescription('If set to "false", when collecting lines,
+                          the line delimiter will NOT be removed; If set to "true",
+                          when collecting, the line delimiter will be removed');
+    $remove_delimiterOpt -> setDefaultValue('true');
+    $remove_delimiterOpt -> setValidation(function($value) {
+        return in_array($value, array('true', 'false'));
+    });
+
     $message_timeout_msOpt = new Option(null, 'message_timeout_ms', Getopt::REQUIRED_ARGUMENT);
     $message_timeout_msOpt -> setDescription('Local message timeout. This value is only enforced locally 
                           and limits the time a produced message waits for successful delivery. 
@@ -180,6 +196,8 @@ function main()
         $compression_codecOpt,
         $batchsizeOpt,
         $follow_lastOpt,
+        $line_delimiterOpt,
+        $remove_delimiterOpt,
         $message_timeout_msOpt,
         $regex_filter_patternOpt,
         $lagging_max_bytesOpt,
@@ -451,6 +469,8 @@ class AdminUtils
         'required_acks' => array('type'=>'integer', 'default'=>'1'),
         'compression_codec' => array('type'=>'string', 'default'=>'none'),
         'batchsize'   => array('type'=>'integer', 'default'=>'1000'),
+        'line_delimiter'   => array('type'=>'integer', 'default'=>'10'), // 10 means ascii '\n'
+        'remove_delimiter'   => array('type'=>'bool', 'default'=>'true'),
         'message_timeout_ms'   => array('type'=>'integer', 'default'=>'0'),
         'regex_filter_pattern'   => array('type'=>'string', 'default'=>''),
         'lagging_max_bytes'   => array('type'=>'integer', 'default'=>'0'),

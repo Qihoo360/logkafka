@@ -67,6 +67,7 @@ class TailWatcher
                 unsigned long line_max_bytes, 
                 unsigned long read_max_bytes,
                 char line_delimiter,
+                bool remove_delimiter,
                 UpdateFunc updateWatcher,
                 ReceiveFunc receiveLines,
                 TaskConf conf,
@@ -113,6 +114,7 @@ class TailWatcher
         unsigned long m_line_max_bytes;
         unsigned long m_read_max_bytes;
         char m_line_delimiter;
+        bool m_remove_delimiter;
         unsigned long m_stat_silent_max_ms;
         Filter *m_filter;
 
