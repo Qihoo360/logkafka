@@ -29,6 +29,7 @@ IOHandler::IOHandler()
     m_buffer = NULL;
     m_buffer_len = 0;
     m_last_io_time = (struct timeval){0};
+    m_last_buffer_stuck_time = (struct timeval){0};
     m_filter = NULL;
     m_output = NULL;
 }/*}}}*/
@@ -55,6 +56,7 @@ bool IOHandler::init(FILE *file,
     m_max_line_at_once = max_line_at_once;
     m_line_max_bytes = line_max_bytes;
     m_buffer_max_bytes = buffer_max_bytes;
+    m_buffer_stuck_max_ms = 10000;
     m_line_delimiter = line_delimiter;
     m_remove_delimiter = remove_delimiter;
     m_filter = filter;
@@ -94,12 +96,26 @@ void IOHandler::onNotify(void *arg)
     if (NULL == ioh->m_file) {
         return;
     }
+
+    /* handle last uncleaned buffer */
+    if (0 != ioh->m_buffer_len) {
+        LDEBUG << "Handle uncleaned buffer";
+        ioh->updateLastIOTime();
+        if (ioh->m_lines.size() < ioh->m_max_line_at_once) {
+            LDEBUG << "Have no room for new line";
+            if (ioh->isBufferStuck()) {
+                LDEBUG << "Buffer is inactive";
+                ioh->m_lines.push_back(string(ioh->m_buffer, ioh->m_buffer_len));
+                ioh->m_buffer_len = 0;
+            }
+        }
+    }
     
     /* handle last unreceived lines */ 
     if (!ioh->m_lines.empty()) {
         ioh->updateLastIOTime();
         if ((*ioh->m_receive_func)(ioh->m_filter, ioh->m_output, ioh->m_lines)) {
-            ioh->m_position_entry->updatePos(ioh->getFilePos());
+            ioh->m_position_entry->updatePos(ioh->getFilePos() - ioh->m_buffer_len);
             ioh->m_lines.clear();
         } else {
             return;
@@ -113,14 +129,19 @@ void IOHandler::onNotify(void *arg)
         read_more = false;
 
         while (true) {
+            size_t read_len = 0;
+
             {
                 ScopedLock l(ioh->m_file_mutex);
                 if (NULL != ioh->m_file) {
-                    ioh->m_buffer_len = fread(ioh->m_buffer, 1, ioh->m_buffer_max_bytes, ioh->m_file);
+                    read_len += fread(ioh->m_buffer + ioh->m_buffer_len,
+                            1, ioh->m_buffer_max_bytes - ioh->m_buffer_len, ioh->m_file);
                 }
             }
 
-            if (0 != ioh->m_buffer_len) {
+            if (0 != read_len) {
+                ioh->m_buffer_len += read_len;
+
                 size_t cur_buf_pos = 0;
                 size_t cur_line_len = 0;
                 char *cur_line = ioh->m_buffer;
@@ -142,10 +163,14 @@ void IOHandler::onNotify(void *arg)
 
                 }
 
+                /* Sometimes, the buffer can not be split perfectly, there is
+                 * some data left in buffer, we should move it to the head of buffer
+                 * */
                 size_t buffer_left_bytes = ioh->m_buffer_len - cur_buf_pos;
+                ioh->m_buffer_len = buffer_left_bytes;
                 if (buffer_left_bytes > 0) {
-                    ScopedLock l(ioh->m_file_mutex);
-                    fseek(ioh->m_file, - buffer_left_bytes, SEEK_CUR);
+                    memcpy(ioh->m_buffer, cur_line, buffer_left_bytes);
+                    ioh->updateLastBufferStuckTime();
                 }
             } else {
                 if (int err = ferror(ioh->m_file)) {
@@ -178,7 +203,7 @@ void IOHandler::onNotify(void *arg)
              * */
             ioh->updateLastIOTime();
             if ((*ioh->m_receive_func)(ioh->m_filter, ioh->m_output, ioh->m_lines)) {
-                ioh->m_position_entry->updatePos(ioh->getFilePos());
+                ioh->m_position_entry->updatePos(ioh->getFilePos() - ioh->m_buffer_len);
                 ioh->m_lines.clear();
             } else {
                 read_more = false;
@@ -206,6 +231,55 @@ bool IOHandler::getLastIOTime(struct timeval &tv)
         res = true;
     }
     return res;
+}/*}}}*/
+
+void IOHandler::updateLastBufferStuckTime()
+{/*{{{*/
+    if (0 == pthread_mutex_trylock(&m_last_buffer_stuck_time_mutex.mutex())) {
+        if (0 != gettimeofday(&m_last_buffer_stuck_time, NULL)) {
+            LERROR << "Fail to get time";
+        }
+        pthread_mutex_unlock(&m_last_buffer_stuck_time_mutex.mutex());
+    }
+}/*}}}*/
+
+bool IOHandler::getLastBufferStuckTime(struct timeval &tv)
+{/*{{{*/
+    bool res = false;
+    if (0 == pthread_mutex_trylock(&m_last_buffer_stuck_time_mutex.mutex())) {
+        tv = m_last_buffer_stuck_time;
+        pthread_mutex_unlock(&m_last_buffer_stuck_time_mutex.mutex());
+        res = true;
+    }
+    return res;
+}/*}}}*/
+
+bool IOHandler::isBufferStuck()
+{/*{{{*/
+    bool is_stuck = false;
+
+    struct timeval cur_tv = (struct timeval){0};
+    if (0 != gettimeofday(&cur_tv, NULL)) {
+        LERROR << "Fail to get time";
+        return is_stuck;
+    }
+
+    struct timeval last_buffer_stuck_time = (struct timeval){0};
+
+    if (!getLastBufferStuckTime(last_buffer_stuck_time)) {
+        LERROR << "Fail to get last buffer stuck time";
+        return is_stuck;
+    }
+
+    LDEBUG << "m_buffer_stuck_max_ms: " << m_buffer_stuck_max_ms
+           << ", cur_tv.tv_sec: " << cur_tv.tv_sec
+           << ", m_last_buffer_stuck_time: " << last_buffer_stuck_time.tv_sec;
+    if ((cur_tv.tv_sec - last_buffer_stuck_time.tv_sec) * 1000UL > m_buffer_stuck_max_ms) {
+        LINFO << "Io handler buffer is stuck";
+        is_stuck = true;
+    }
+
+    return is_stuck;
 }/*}}}*/
 
 void IOHandler::close()

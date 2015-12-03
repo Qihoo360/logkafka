@@ -255,7 +255,7 @@ bool Manager::refreshTaskConfs()
 bool Manager::start()
 {/*{{{*/
     if (NULL == (m_pos_file = fopen(m_pos_path.c_str(), "r+"))) {
-        LERROR << "Position file " << m_pos_path << " does not exists";
+        LWARNING << "Position file " << m_pos_path << " does not exists";
         if (NULL == (m_pos_file = fopen(m_pos_path.c_str(), "w+"))) {
             LERROR << "Fail to create position file " << m_pos_path;
             return false;

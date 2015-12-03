@@ -72,11 +72,15 @@ class IOHandler
 
     private:
         void updateLastIOTime();
+        bool getLastBufferStuckTime(struct timeval &tv);
+        void updateLastBufferStuckTime();
+        bool isBufferStuck();
 
     private:
         unsigned int m_max_line_at_once;
         unsigned int m_line_max_bytes;
         unsigned int m_buffer_max_bytes;
+        unsigned long m_buffer_stuck_max_ms;
         ReceiveFunc m_receive_func;
         void *m_filter;
         void *m_output;
@@ -88,8 +92,10 @@ class IOHandler
         vector<string> m_lines;
 
         struct timeval m_last_io_time;
+        struct timeval m_last_buffer_stuck_time;
 
         Mutex m_last_io_time_mutex;
+        Mutex m_last_buffer_stuck_time_mutex;
         Mutex m_file_mutex;
 };
 
