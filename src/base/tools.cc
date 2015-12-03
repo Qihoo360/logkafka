@@ -136,7 +136,7 @@ bool isAbsPath(const char* filepath)
         return false;
     }
 
-    return filepath[1] == '/';
+    return filepath[0] == '/';
 }/*}}}*/
 
 set<std::string> diff_set(set<std::string> s1, set<std::string> s2)
