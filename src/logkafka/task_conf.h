@@ -56,7 +56,7 @@ struct LogConf {
     LogConf()
     {/*{{{*/
         log_path = "";
-        follow_last = false;
+        follow_last = true;
         batchsize = 200;
         read_from_head = true;
         line_delimiter = '\n';

@@ -103,6 +103,14 @@ function main()
         return in_array($value, array('true', 'false'));
     });
 
+    $read_from_headOpt = new Option(null, 'read_from_head', Getopt::REQUIRED_ARGUMENT);
+    $read_from_headOpt -> setDescription('If set to "false", the first file will be collected
+                          from tail; If set to "true", the first file will be collected from head');
+    $read_from_headOpt -> setDefaultValue('true');
+    $read_from_headOpt -> setValidation(function($value) {
+        return in_array($value, array('true', 'false'));
+    });
+
     $line_delimiterOpt = new Option(null, 'line_delimiter', Getopt::REQUIRED_ARGUMENT);
     $line_delimiterOpt -> setDescription('The line delimiter of log file, use the ascii code');
     $line_delimiterOpt -> setDefaultValue('10'); // 10 means ascii '\n'
@@ -196,6 +204,7 @@ function main()
         $compression_codecOpt,
         $batchsizeOpt,
         $follow_lastOpt,
+        $read_from_headOpt,
         $line_delimiterOpt,
         $remove_delimiterOpt,
         $message_timeout_msOpt,
@@ -476,6 +485,7 @@ class AdminUtils
         'lagging_max_bytes'   => array('type'=>'integer', 'default'=>'0'),
         'rotate_lagging_max_sec'   => array('type'=>'integer', 'default'=>'0'),
         'follow_last' => array('type'=>'bool', 'default'=>'true'),
+        'read_from_head' => array('type'=>'bool', 'default'=>'true'),
         'valid'       => array('type'=>'bool', 'default'=>'true'),
         );
 

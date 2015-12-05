@@ -206,7 +206,11 @@ bool Manager::refreshTaskConfs()
             item.log_conf.remove_delimiter = str2Bool(remove_delimiter.c_str());
         } catch(...) { /* default value */ }
 
-        item.log_conf.read_from_head = true;
+        try {
+            string read_from_head;
+            Json::getValue(log_item, "read_from_head", read_from_head);
+            item.log_conf.read_from_head = str2Bool(read_from_head.c_str());
+        } catch(...) { /* default value */ }
 
         try {
             string key;
@@ -427,7 +431,8 @@ void Manager::updateTaskPaths(const string &path_pattern)
 
     /* add paths in position file if this is first updating */
     if (task.stat.first_update_paths
-            && expanded_path != path_pattern) 
+            && expanded_path != path_pattern
+            && task.conf.log_conf.follow_last)
     {
         string last_path;
         if (m_position_file->getPath(path_pattern, last_path)) {
@@ -597,7 +602,7 @@ TailWatcher* Manager::setupWatcher(
             path, 
             position_entry,
             m_stat_silent_max_ms, 
-            true,
+            conf.log_conf.read_from_head,
             conf.log_conf.batchsize,
             m_line_max_bytes,
             m_read_max_bytes,

@@ -174,7 +174,7 @@ bool TailWatcher::onRotate(void *arg, FILE *file)
             ino_t last_inode = pe->readInode();
             if (inode == last_inode) {
                 pos = pe->readPos();
-            } else if (inode != 0) {
+            } else if (last_inode != 0) {
                 pos = 0;
                 LINFO << "Updating position entry, inode: " << inode << ", pos: " << pos;
                 pe->update(inode, pos);
