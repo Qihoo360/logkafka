@@ -81,6 +81,7 @@ class IOHandler
         unsigned int m_line_max_bytes;
         unsigned int m_buffer_max_bytes;
         unsigned long m_buffer_stuck_max_ms;
+        bool m_buffer_last_segment;
         ReceiveFunc m_receive_func;
         void *m_filter;
         void *m_output;

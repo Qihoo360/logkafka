@@ -30,6 +30,7 @@ IOHandler::IOHandler()
     m_buffer_len = 0;
     m_last_io_time = (struct timeval){0};
     m_last_buffer_stuck_time = (struct timeval){0};
+    m_buffer_last_segment = false;
     m_filter = NULL;
     m_output = NULL;
 }/*}}}*/
@@ -103,7 +104,7 @@ void IOHandler::onNotify(void *arg)
         ioh->updateLastIOTime();
         if (ioh->m_lines.size() < ioh->m_max_line_at_once) {
             LDEBUG << "Have no room for new line";
-            if (ioh->isBufferStuck()) {
+            if (ioh->isBufferStuck() && ioh->m_buffer_last_segment) {
                 LDEBUG << "Buffer is inactive";
                 ioh->m_lines.push_back(string(ioh->m_buffer, ioh->m_buffer_len));
                 ioh->m_buffer_len = 0;
@@ -125,7 +126,6 @@ void IOHandler::onNotify(void *arg)
     bool read_more = false;
 
     do {
-        ioh->m_lines.clear();
         read_more = false;
 
         while (true) {
@@ -139,13 +139,22 @@ void IOHandler::onNotify(void *arg)
                 }
             }
 
-            if (0 != read_len) {
-                ioh->m_buffer_len += read_len;
+            ioh->m_buffer_len += read_len;
 
+            if (0 != ioh->m_buffer_len) {
                 size_t cur_buf_pos = 0;
                 size_t cur_line_len = 0;
                 char *cur_line = ioh->m_buffer;
-                for (size_t i = 0; i < ioh->m_buffer_len; ++i) {
+
+                ioh->m_buffer_last_segment = false;
+                size_t i; 
+                for (i = 0; i < ioh->m_buffer_len; ++i) {
+                    /* got enough data, we should leave this loop */
+                    if (ioh->m_lines.size() >= ioh->m_max_line_at_once) {
+                         read_more = true;
+                         break;
+                    }
+
                     cur_line_len = (i + 1) - cur_buf_pos;
                     cur_line = ioh->m_buffer + cur_buf_pos;
 
@@ -160,8 +169,9 @@ void IOHandler::onNotify(void *arg)
                         ioh->m_lines.push_back(string(cur_line, cur_line_len));
                         cur_buf_pos = i + 1;
                     }
-
                 }
+
+                if (i == ioh->m_buffer_len) ioh->m_buffer_last_segment = true;
 
                 /* Sometimes, the buffer can not be split perfectly, there is
                  * some data left in buffer, we should move it to the head of buffer
@@ -169,10 +179,13 @@ void IOHandler::onNotify(void *arg)
                 size_t buffer_left_bytes = ioh->m_buffer_len - cur_buf_pos;
                 ioh->m_buffer_len = buffer_left_bytes;
                 if (buffer_left_bytes > 0) {
-                    memcpy(ioh->m_buffer, cur_line, buffer_left_bytes);
+                    memcpy(ioh->m_buffer, ioh->m_buffer + cur_buf_pos, buffer_left_bytes);
                     ioh->updateLastBufferStuckTime();
                 }
-            } else {
+            } 
+
+            /* read no new data, we should leave this loop */
+            if (0 == read_len) {
                 if (int err = ferror(ioh->m_file)) {
                     LERROR << "Fail to read from fd " << fileno(ioh->m_file)
                            << ", ferror: " << err;
@@ -186,6 +199,7 @@ void IOHandler::onNotify(void *arg)
                 break;
             }
 
+            /* got enough data, we should leave this loop */
             if (ioh->m_lines.size() >= ioh->m_max_line_at_once) {
                  read_more = true;
                  break;
