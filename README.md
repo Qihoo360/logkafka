@@ -124,7 +124,7 @@ Note: If you already have kafka and zookeeper installed, you can start from step
 
   Use UI or command line tools.
 
-  3.1 UI (with kafka-manger)
+  3.1 UI (with kafka-manager)
 
   We add logkafka as one kafka-manager extension. You need to [install and start kafka-manager](https://github.com/zheolong/kafka-manager/), add cluster with logkafka enabled, then you can manage logkafka with the 'Logkafka' menu.
   
