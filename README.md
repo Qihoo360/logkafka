@@ -40,6 +40,8 @@ The main differences with **flume**, **fluentd**, **logstash** are
 
 * [Qihoo360](http://www.360totalsecurity.com/features/360-total-security-mac/) - Collecting openstack operation logs
 * [ICBC](http://www.icbc.com.cn/ICBC/sy/default.htm) - Collecting ssdb operation log
+* [Didi Dache](http://www.xiaojukeji.com/)
+* [Meituan](http://www.meituan.com/)
 * *Let [me](zheolong@126.com) know if you are using logkafka.*
 
 [details...](docs/Users.md)
@@ -255,5 +257,4 @@ make logkafka_coverage  # run unittest
 
 ## TODO
 
-1. Regex filter
-2. Multi-line mode
+1. Multi-line mode
