@@ -1,4 +1,4 @@
-## logkafka - Collect logs and send lines to Apache Kafka 0.8
+## logkafka - Collect logs and send lines to Apache Kafka 0.8+
 
 ## Introduction [中文文档](https://github.com/Qihoo360/logkafka/wiki)
 
