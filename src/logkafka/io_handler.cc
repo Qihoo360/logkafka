@@ -115,10 +115,15 @@ void IOHandler::onNotify(void *arg)
     /* handle last unreceived lines */ 
     if (!ioh->m_lines.empty()) {
         ioh->updateLastIOTime();
-        if ((*ioh->m_receive_func)(ioh->m_filter, ioh->m_output, ioh->m_lines)) {
+        vector<string> unsent_lines;
+        if ((*ioh->m_receive_func)(ioh->m_filter, ioh->m_output, ioh->m_lines, unsent_lines)) {
             ioh->m_position_entry->updatePos(ioh->getFilePos() - ioh->m_buffer_len);
-            ioh->m_lines.clear();
-        } else {
+            /* keep unsent lines in m_lines for resending */ 
+            ioh->m_lines = unsent_lines;
+        }
+
+        if (!unsent_lines.empty()) {
+            /* unsent lines found, we have to return */
             return;
         }
     }
@@ -216,10 +221,16 @@ void IOHandler::onNotify(void *arg)
              * timeout value, you should take this into consideration.
              * */
             ioh->updateLastIOTime();
-            if ((*ioh->m_receive_func)(ioh->m_filter, ioh->m_output, ioh->m_lines)) {
+
+            vector<string> unsent_lines;
+            if ((*ioh->m_receive_func)(ioh->m_filter, ioh->m_output, ioh->m_lines, unsent_lines)) {
                 ioh->m_position_entry->updatePos(ioh->getFilePos() - ioh->m_buffer_len);
-                ioh->m_lines.clear();
-            } else {
+                /* keep unsent lines in m_lines for resending */ 
+                ioh->m_lines = unsent_lines;
+            }
+
+            if (!unsent_lines.empty()) {
+                /* unsent lines found, read no more */
                 read_more = false;
             }
         }

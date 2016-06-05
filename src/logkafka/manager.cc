@@ -800,7 +800,10 @@ bool Manager::updateWatcherRotate(Manager *manager,
     return true;
 }/*}}}*/
 
-bool Manager::receiveLines(void *filter, void *output, const vector<string> &lines)
+bool Manager::receiveLines(void *filter, 
+        void *output, 
+        const vector<string> &lines,
+        vector<string> &unsent_lines)
 {/*{{{*/
     if (NULL == output) {
         LERROR << "output function is NULL";
@@ -819,7 +822,7 @@ bool Manager::receiveLines(void *filter, void *output, const vector<string> &lin
     }
 
     Output *out = reinterpret_cast<Output *>(output);
-    return out->output(out, valid_lines);
+    return out->output(out, valid_lines, unsent_lines);
 }/*}}}*/
 
 void Manager::uploadCollectingState(void *arg)

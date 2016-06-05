@@ -61,6 +61,7 @@ class Producer
         void close();
 
         bool send(const vector<string> &messages,
+                vector<string> &unsent_messages,
                 const string &brokers, 
                 const string &topic, 
                 const string &key, 

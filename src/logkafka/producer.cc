@@ -145,6 +145,7 @@ void Producer::close()
 }/*}}}*/
 
 bool Producer::send(const vector<string> &messages,
+        vector<string> &unsent_messages,
         const string &brokers, 
         const string &topic, 
         const string &key, 
@@ -201,7 +202,13 @@ bool Producer::send(const vector<string> &messages,
             if (failcnt < 100) {
                 LERROR << "Message #" << i 
                        << " failed: " << rd_kafka_err2str(rkmessages[i].err);
-                ret = false;
+                ret = true;
+            }
+
+            /* Just keep unsent messages due to queue full error */
+            if (rkmessages[i].err == RD_KAFKA_RESP_ERR__QUEUE_FULL) {
+                string msg((const char*)rkmessages[i].payload, rkmessages[i].len);
+                unsent_messages.push_back(msg);
             }
         }
     }
@@ -217,7 +224,7 @@ bool Producer::send(const vector<string> &messages,
                    << " (" << msgcnt<< " - " << r << ")";
 
         LERROR << (msgcnt -r) << "/" << msgcnt << " messages failed";
-        ret = false;
+        ret = true;
     }
 
     rd_kafka_poll(m_rk, 0);

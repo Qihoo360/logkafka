@@ -42,7 +42,9 @@ using namespace base;
 
 namespace logkafka {
 
-typedef bool (*ReceiveFunc)(void *, void *, const vector<string> &);
+typedef bool (*ReceiveFunc)(void *, 
+        void *, const vector<string> &, 
+        vector<string> &);
 
 class IOHandler
 {

@@ -49,7 +49,9 @@ class OutputKafka: public virtual Output
 
         /* NOTE: not thread-safe */
         bool init(void *arg, string compression_codec);
-        bool output(void *arg, const vector<string> &lines);
+        bool output(void *arg, 
+                const vector<string> &lines, 
+                vector<string> &unsent_lines);
         bool setKafkaTopicConf(KafkaTopicConf kafka_topic_conf);
 
         /* NOTE: not thread-safe */

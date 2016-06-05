@@ -42,7 +42,9 @@ class Output
         Output() {};
         virtual ~Output() {};
         virtual bool init(void *arg) = 0;
-        virtual bool output(void *arg, const vector<string> &lines) = 0;
+        virtual bool output(void *arg, 
+                const vector<string> &lines, 
+                vector<string> &unsent_lines) = 0;
 };
 
 } // namespace logkafka

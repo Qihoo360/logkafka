@@ -26,13 +26,16 @@ namespace logkafka {
 map< string, Producer *> OutputKafka::m_producer_map;
 KafkaConf OutputKafka::m_kafka_conf;
 
-bool OutputKafka::output(void *arg, const vector<string> &lines)
+bool OutputKafka::output(void *arg, 
+        const vector<string> &lines, 
+        vector<string> &unsent_lines)
 {/*{{{*/
     OutputKafka *ok = reinterpret_cast<OutputKafka *>(arg);
     KafkaTopicConf kafka_topic_conf = ok->m_kafka_topic_conf;
     Producer *producer = ok->m_producer_map[kafka_topic_conf.compression_codec];
 
     return producer->send(lines,
+                unsent_lines,
                 "", 
                 kafka_topic_conf.topic, 
                 kafka_topic_conf.key, 

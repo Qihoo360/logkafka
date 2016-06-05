@@ -110,7 +110,10 @@ class Manager
                 string path,
                 PositionEntry *position_entry);
         void flushBuffer(TailWatcher *tw);
-        static bool receiveLines(void *filter, void *output, const vector<string> &lines);
+        static bool receiveLines(void *filter, 
+                void *output, 
+                const vector<string> &lines,
+                vector<string> &unsent_lines);
 
         set<string> getTasksKeys(const TaskMap &tasks);
         set<string> getTailsKeys(const TailMap &tails);
