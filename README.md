@@ -1,3 +1,5 @@
+[![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu) [![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/996icu/996.ICU/blob/master/LICENSE)
+
 ## logkafka - Collect logs and send lines to Apache Kafka 0.8+
 
 ## Introduction [中文文档](https://github.com/Qihoo360/logkafka/wiki)
