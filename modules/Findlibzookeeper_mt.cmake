@@ -6,11 +6,12 @@ MESSAGE(STATUS "Using bundled Findlibzookeeper_mt.cmake...")
   /usr/include/zookeeper
   /usr/include/ 
   /usr/local/include/ 
-  /usr/local/include/zookeeper
-  /usr/local/zookeeper/include/zookeeper
+  /usr/local/include/zookeeper/
+  /usr/local/zookeeper/include/zookeeper/
+  /usr/local/opt/zookeeper/include/zookeeper/
   )
 
 FIND_LIBRARY(
   LIBZOOKEEPER_MT_LIBRARIES NAMES libzookeeper_mt.a zookeeper_mt
-  PATHS $ENV{LIBZOOKEEPER_LIB_PATH} /usr/lib/ /usr/local/lib/ 
+  PATHS $ENV{LIBZOOKEEPER_LIB_PATH} /usr/lib/ /usr/local/lib/ /usr/local/zookeeper/lib/ /usr/local/opt/zookeeper/lib/
   )

@@ -4,9 +4,10 @@ MESSAGE(STATUS "Using bundled Findlibz.cmake...")
   zlib.h 
   /usr/include/ 
   /usr/local/include/ 
+  /usr/local/opt/zlib/include/
   )
 
 FIND_LIBRARY(
   LIBZ_LIBRARIES NAMES z 
-  PATHS /usr/lib/ /usr/local/lib/
+  PATHS /usr/lib/ /usr/local/lib/ /usr/local/opt/zlib/lib
   )

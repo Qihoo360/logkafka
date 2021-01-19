@@ -5,9 +5,10 @@ MESSAGE(STATUS "Using bundled Findlibpcre2.cmake...")
   /usr/include/
   /usr/local/include
   /usr/local/include/pcre2
+  /usr/local/opt/pcre2/include/pcre2
   )
 
 FIND_LIBRARY(
   LIBPCRE2_LIBRARIES NAMES libpcre2-8.a pcre2
-  PATHS /usr/lib /usr/local/lib
+  PATHS /usr/lib /usr/local/lib /usr/local/opt/pcre2/lib
   )
