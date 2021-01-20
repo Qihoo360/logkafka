@@ -11,7 +11,7 @@ cd /tmp
 wget -N https://github.com/edenhill/librdkafka/archive/master.zip -O librdkafka.zip; unzip librdkafka.zip; rm -f librdkafka.zip
 cd librdkafka-master
 ./configure
-make
+make -j4
 sudo make install
 ```
 	
