@@ -49,6 +49,11 @@ The main differences with **flume**, **fluentd**, **logstash** are
 [details...](docs/Users.md)
 
 
+## Supported operating systems
+
+* GNU/Linux: recommended
+* MacOS: may not support relatively new macos system
+
 ## Requirements
 
 * librdkafka
@@ -86,6 +91,8 @@ Two methods, choose accordingly.
 	make -j4
 	make install
 	```
+
+    If any of the libs installation fail, please manually install it, and set the corresponding config `-DINSTALL_LIBXXX=OFF`.
 
 ## Usage
 
