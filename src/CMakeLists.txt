@@ -1,14 +1,14 @@
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/third_party
-    ${PROJECT_SOURCE_DIR}/src/third_party/libconfuse/src
+    ${PROJECT_SOURCE_DIR}/src/third_party/confuse/src
     ${PROJECT_SOURCE_DIR}/src/third_party/rapidjson/include
     ${PROJECT_SOURCE_DIR}/src/third_party/tclap/include)
 AUX_SOURCE_DIRECTORY(logkafka DIR_SRCS)
 AUX_SOURCE_DIRECTORY(base DIR_SRCS)
-ADD_SUBDIRECTORY(third_party/libconfuse)
+ADD_SUBDIRECTORY(third_party/confuse)
 ADD_EXECUTABLE(logkafka ${DIR_SRCS})
-TARGET_LINK_LIBRARIES(logkafka libconfuse)
+TARGET_LINK_LIBRARIES(logkafka confuse)
 
 SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb -pg")
 SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
