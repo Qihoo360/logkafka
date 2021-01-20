@@ -1,0 +1,13 @@
+prefix=/usr/local/confuse
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+
+Name: confuse
+Version: 2.7
+Description: configuration file parser library
+Requires: 
+Libs: -L${libdir} -lconfuse -lintl -Wl,-framework -Wl,CoreFoundation
+Cflags: -I${includedir}
+
