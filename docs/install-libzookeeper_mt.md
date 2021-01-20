@@ -5,7 +5,7 @@
 cd /tmp
 wget -N http://archive.apache.org/dist/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz; tar zxvf zookeeper-3.4.6.tar.gz; rm -f zookeeper-3.4.6.tar.gz
 cd zookeeper-3.4.6/src/c
-./configure --prefix=/usr/local/zookeeper
+./configure
 make -j4
 sudo make install
 ```
