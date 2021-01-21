@@ -251,7 +251,7 @@ Thanks to the creators of these packages.
 
 ## Developers
 
-Make sure you have lcov installed, check [this](http://ltp.sourceforge.net/coverage/lcov/readme.php)
+1. Make sure you have lcov installed, check [this](http://ltp.sourceforge.net/coverage/lcov/readme.php)
 
 compile with unittest and debug type
 
@@ -263,6 +263,11 @@ cd _build
 make
 make logkafka_coverage  # run unittest
 ```
+
+2. [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html)
+
+The code that not conform to this rule should be fixed before committing, you can use ```cpplint``` to check the modified files.
+
 
 ## TODO
 
