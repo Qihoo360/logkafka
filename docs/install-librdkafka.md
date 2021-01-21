@@ -1,11 +1,6 @@
 ## install librdkafka
 
-For Mac:
-```
-brew install librdkafka
-```
-
-For linux:
+For Mac and linux:
 ```
 cd /tmp
 
