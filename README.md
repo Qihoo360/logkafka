@@ -52,7 +52,7 @@ The main differences with **flume**, **fluentd**, **logstash** are
 ## Supported operating systems
 
 * GNU/Linux: recommended
-* MacOS: may not support relatively new macos system
+* MacOS: >=10.10
 
 ## Requirements
 

@@ -1,7 +1,7 @@
 MESSAGE(STATUS "installing libzookeeper_mt ...")
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
 
-IF (OS_X_VERSION VERSION_EQUAL "10.10")
+IF (OS_X_VERSION VERSION_GREATER_EQUAL "10.10")
     MESSAGE(STATUS "downloading lib zookeeper patch for Mac OS X ${OS_X_VERSION} ...")
     #SET(ZOOKEEPER_PATCH_FILE ${CMAKE_CURRENT_BINARY_DIR}/libzookeeper_mt/ZOOKEEPER-2049.noprefix.trunk.patch)
     #SET(ZOOKEEPER_PATCH_URL https://issues.apache.org/jira/secure/attachment/12673212/ZOOKEEPER-2049.noprefix.trunk.patch)
@@ -9,9 +9,9 @@ IF (OS_X_VERSION VERSION_EQUAL "10.10")
     #                COMMAND wget ${ZOOKEEPER_PATCH_URL} -O ${ZOOKEEPER_PATCH_FILE})
     SET(ZOOKEEPER_PATCH_FILE ${PROJECT_SOURCE_DIR}/patches/ZOOKEEPER-2049.noprefix.trunk.patch)
     SET(LIBZK_OSX_PATCH_CMD "patch -p0 -N -s < ${ZOOKEEPER_PATCH_FILE} || true")
-ELSE (OS_X_VERSION VERSION_EQUAL "10.10")
+ELSE (OS_X_VERSION VERSION_GREATER_EQUAL "10.10")
     SET(LIBZK_OSX_PATCH_CMD ":") # do nothing
-ENDIF (OS_X_VERSION VERSION_EQUAL "10.10")
+ENDIF (OS_X_VERSION VERSION_GREATER_EQUAL "10.10")
 
 ExternalProject_Add(project_libzookeeper_mt
     URL http://archive.apache.org/dist/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
